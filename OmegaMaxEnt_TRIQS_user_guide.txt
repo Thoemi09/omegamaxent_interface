@@ -1,0 +1,77 @@
+You will find here the instructions to use the python TRIQS interface to the analytic continuation program OmegaMaxEnt (https://www.physique.usherbrooke.ca/MaxEnt/index.php/Main_Page). For detailed instructions on the use of OmegaMaxEnt, see the user guide available at https://www.physique.usherbrooke.ca/MaxEnt/index.php/User_Guide.
+
+The interface is defined in the module OmegaMaxEnt_TRIQS. The function that computes the real frequency Green's function is compute_GfReFreq(), which takes an object of type Gf, GfImFreq or GfImTime and returns an object of type GfReFreq and also saves that object in file "G_Re_Freq.h5". The function's prototype is 
+
+compute_GfReFreq(G, ERR=0, grid_params=[], name="$G^R(\omega)$", interactive_mode=True, save_figures_data=True, inv_sym=False, mu=1, nu=1)
+
+where G is the TRIQS Green's function object and the optional parameters are
+
+ERR: 
+
+Optional. Numpy array containing the standard deviations of the elements of G. If G is provided in imaginary frequency, ERR has two columns (or lines), for the real and imaginary parts of G, and if G is an imaginary time function, ERR has a single column (or row). The indices of ERR must match the mesh in G.
+
+You can also set ERR=0 and use parameter "error file:" in section INPUT FILES PARAMETERS of the file "OmegaMaxEnt_input_params.dat" (more details are given below on the parameter file). If the covariance is not diagonal, see instructions in section 2.3.2 of the OmegaMaxEnt user guide (https://www.physique.usherbrooke.ca/MaxEnt/index.php/User_Guide).
+
+If no error is provided, either with the ERR parameter of using parameters in "OmegaMaxEnt_input_params.dat", the program will assume that the error is constant. Since the value of that constant has no effect on the result, it is an internal parameter of the code.
+
+grid_params:
+
+Optional. List of the form [omega_min, omega_step, omega_max] defining the real frequency grid of the Green function. By default, the grid is set by OmegaMaxEnt.
+
+name:
+
+Optional. Name of the Green function.
+
+interactive_mode:
+
+Optional. Default: True. Turns off the interactive mode of OmegaMaxEnt if set to False. By default, the interactive mode is on.
+
+save_figures_data: 
+
+Optional. Default: True if G is scalar, False if G is a matrix. Tells OmegaMaxEnt to save figure files if True. See below
+
+inv_sym:
+
+Optional. Default: False. If your Green function is a matrix, inv_sym=True means that G[i,j]=G[j,i], which simplifies the calculation of off diagonal elements.
+
+If save_figures_data=True, regardless of the value of interactive_mode, the same figures that are displayed if interactive_mode=True can be displayed after the execution of OmegaMaxEnt using OmegaMaxEnt_TRIQS.display_figures(). If save_figures_data=False, the files used by display_figures() are not saved.
+
+
+mu, nu:
+
+Optional. Default: mu=1, nu=1. Adjustable parameters in the transformation used to compute the off diagonal elements of the real frequency Green function. See appendix C of the OmegaMaxEnt user guide (https://www.physique.usherbrooke.ca/MaxEnt/index.php/User_Guide) for more details.
+
+
+More details on how to use the interface:
+
+The OmegaMaxEnt program uses the file "OmegaMaxEnt_input_params.dat" to interact with the user. You can optionally create that file in advance with the function OmegaMaxEnt_TRIQS.create_params_file(). If you do not, compute_GfReFreq() will create it. The parameters in "OmegaMaxEnt_input_params.dat" are described in the user guide (https://www.physique.usherbrooke.ca/MaxEnt/index.php/User_Guide). 
+
+Except for the parameters in the top section of the file, which are defined by compute_GfReFreq(), you can set any other parameter.
+
+In interactive mode, OmegaMaxEnt displays figures during the execution. If parameter "display preprocessing figures" in "OmegaMaxEnt_input_params.dat" is enabled, figures are displayed during the preprocessing stage. Otherwise, figures are displayed only at the end of the calculation, showing the resulting Green function, along with different quantities useful to evaluate the quality of the results. Taking a look at those figures is important, especially when processing a set of data for the first time. You can thus ensure that the calculation is indeed complete, that the algorithm worked well, and assess the reliability of the result. Details about how to interpret the different quantities displayed are given in the user guide. 
+
+In interactive mode, the program pauses at the end of the preprocessing stage if parameter "preprocess only" is enabled, and at the end of the calculation. During the pause, you can modify "OmegaMaxEnt_input_params.dat" and resume the execution of OmegaMaxEnt once the file is saved. Otherwise, if you are satisfied with the result displayed, you can exit the execution of OmegaMaxEnt by closing all the figures and entering any character other than 'y' in the terminal to resume the execution of your python code. If interactive_mode=False, OmegaMaxEnt will not display any figure and exit at the end of the calculation.
+
+
+Imaginary time data G(tau): 
+
+OmegaMaxEnt works internally with the Matsubara frequency Green function. Therefore, if the data are provided in imaginary time, the program first has to compute the Fourier transform of the Green function before starting the calculation. This calculation is fast because it is only one fast Fourier transform. However, if you provide errors, the covariance matrix must also be Fourier transformed. If the number of time points is a few hundreds at most, this calculation is also over quickly, but if the number of points is more than a thousand, the calculation time becomes of the order of a few minutes and more, which might seem long if you are working in interactive mode. Also, if the standard deviation does not depend on tau, the covariance matrix is also proportional to the identity matrix in Matsubara frequency. Therefore, do not provide any error in that case and no covariance matrix will be Fourier transformed. The result will not be affected because it does not depend on the absolute value of the standard deviation. On the other hand, if the standard deviation depends on tau, the covariance matrix has to be Fourier transformed. In case, and if you need to redo the calculation with the same data, you can accelerate the preprocessing by using the Fourier transform of your Green function that is saved as a GfImFreq object called 'G' in file "G_im_freq.h5" and the Fourier transform of the covariance matrix saved in files "covar_ReRe.dat", "covar_ImIm.dat" and "covar_ReIm.dat" in directory "Fourier_transformed_data". Use the lines "re-re covariance file", "im-im covariance file" and "re-im covariance file" in section INPUT FILES PARAMETERS of the file "OmegaMaxEnt_input_params.dat" to provide the covariance to OmegaMaxEnt.
+
+
+For more details on how to use OmegaMaxEnt, see the user guide.
+
+
+Example: Suppose you have saved a TRIQS Matsubara Green's function as 'G' in file "G.h5", here is a script to obtain the corresponding real frequency Green's function.
+
+"
+from pytriqs.archive import HDFArchive as HA
+import OmegaMaxEnt_TRIQS as OT
+
+#load the Green's function
+A=HA("G.h5",'r'):
+G=A['G']
+
+GR=OT.compute_GfReFreq(G)
+"
+
+
