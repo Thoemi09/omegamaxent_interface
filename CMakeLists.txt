@@ -1,13 +1,16 @@
 cmake_minimum_required (VERSION 2.6)
 
-project(OmegaMaxEnt)
+# Load Dependencies
+find_package(TRIQS 1.5 REQUIRED)
+find_package(Cpp2Py 1.5 REQUIRED)
 
-include_directories("armadillo-5.600.2/include" "/usr/local/opt/lapack/include")
+# Default Install directory to TRIQS_ROOT if not given or invalid.
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT OR (NOT IS_ABSOLUTE ${CMAKE_INSTALL_PREFIX}))
+  message(STATUS "No install prefix given (or invalid). Defaulting to TRIQS_ROOT")
+  set(CMAKE_INSTALL_PREFIX ${TRIQS_ROOT} CACHE PATH "default install path" FORCE)
+endif()
+message(STATUS "-------- INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX} --------")
 
-add_definitions(-std=c++11 -O0 -DARMA_DONT_USE_WRAPPER)
+add_subdirectory(cpp)
+add_subdirectory(python)
 
-link_directories("/usr/local/opt/lapack/lib")
-
-add_executable(OmegaMaxEnt graph_2D.cpp generique.cpp OmegaMaxEnt_data.cpp OmegaMaxEnt_main.cpp)
-
-target_link_libraries(OmegaMaxEnt blas lapack fftw3 gsl)
