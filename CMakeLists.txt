@@ -17,6 +17,6 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT OR (NOT IS_ABSOLUTE ${CMAKE_INSTA
 endif()
 message(STATUS "-------- INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX} --------")
 
-add_subdirectory(cpp)
+add_subdirectory(omegamaxent)
 add_subdirectory(python)
 
