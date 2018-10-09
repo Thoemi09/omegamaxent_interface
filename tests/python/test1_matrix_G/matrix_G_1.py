@@ -10,6 +10,10 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 A=HA("G.h5",'r')
 G=A['G']
 
+file=open("spectr_0_0.dat",'r')
+A00_data=np.loadtxt(file)
+file.close()
+
 GR=OT.compute_GfReFreq(G,interactive_mode=False)
 
 file=open("spectr_0_0.dat",'r')
@@ -29,7 +33,7 @@ A00=A00_data[:,1]
 A01=A01_data[:,1]
 A11=A11_data[:,1]
 
-with HA("G_Re_freq.h5", 'r') as A:
+with HA("G_Re_Freq.h5", 'r') as A:
     G=A['G']
 
 G00=G['0','0']
