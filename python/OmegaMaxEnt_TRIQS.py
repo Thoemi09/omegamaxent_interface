@@ -35,7 +35,7 @@ err_str="error file:"
 inter_m_str="interactive mode ([yes]/no):"
 grid_params_str="output real frequency grid parameters (w_min dw w_max):"
 
-def compute_GfReFreq(G, ERR=None, grid_params=None, name="$G^R(\omega)$", interactive_mode=True, save_figures_data=True, inv_sym=False, mu=1, nu=1):
+def compute_GfReFreq(G, ERR=None, grid_params=[], name="$G^R(\omega)$", interactive_mode=True, save_figures_data=True, inv_sym=False, mu=1, nu=1):
 	if not isinstance(G,Gf) and not isinstance(G,GfImFreq) and not isinstance(G,GfImTime) and not isinstance(G,BlockGf):
 		print "compute_GfReFreq(): input type " + str(G.__class__) + " not accepted. Only objects of types Gf, GfImFreq, GfImTime or BlockGf are accepted."
 		return 0
