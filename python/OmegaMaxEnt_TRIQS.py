@@ -116,19 +116,21 @@ def compute_matrix_GfReFreq(G, grid_params=[], inv_sym=False, mu=1, nu=1, intera
 
 	if len(grid_params)!=3:
 		step=(Gtmp.mesh.omega_max-Gtmp.mesh.omega_min)/(n_freq-1)
-		grid_params=[Gtmp.mesh.omega_min-epsilon, step, Gtmp.mesh.omega_max+epsilon]
+		grid_params = [Gtmp.mesh.omega_min, step, Gtmp.mesh.omega_max]
+	#	grid_params=[Gtmp.mesh.omega_min-epsilon, step, Gtmp.mesh.omega_max+epsilon]
+
 
 	GM=GfReFreq(indices=G.indices, window = (Gtmp.mesh.omega_min, Gtmp.mesh.omega_max), n_points = n_freq, name=name)
 
 	GM[ind[0],ind[0]]=Gtmp
 	print "G[" + ind[0] + "," + ind[0] + "] computed"
-	with HA("G_Re_freq_" + ind[0] + "_" + ind[0] + ".h5", 'w') as A:
+	with HA("G_Re_Freq_" + ind[0] + "_" + ind[0] + ".h5", 'w') as A:
 		A['G'] = GM[ind[0], ind[0]]
 
 	for l in ind[1:]:
 		GM[l, l]=compute_scalar_GfReFreq(G[l, l], 0, grid_params, "",interactive_mode, save_figures_data)
 		print "G[" + l + "," + l + "] computed"
-		with HA("G_Re_freq_" + l + "_" + l + ".h5", 'w') as A:
+		with HA("G_Re_Freq_" + l + "_" + l + ".h5", 'w') as A:
 			A['G'] = GM[l, l]
 
 	if not inv_sym:
@@ -144,9 +146,9 @@ def compute_matrix_GfReFreq(G, grid_params=[], inv_sym=False, mu=1, nu=1, intera
 				GM[ind[m],ind[l]]=(R/mu-1j*S/nu)/2
 				print "G[" + ind[l] + "," + ind[m] + "] computed"
 				print "G[" + ind[m] + "," + ind[l] + "] computed"
-				with HA("G_Re_freq_" + ind[l] + "_" + ind[m] + ".h5", 'w') as A:
+				with HA("G_Re_Freq_" + ind[l] + "_" + ind[m] + ".h5", 'w') as A:
 					A['G'] = GM[ind[l], ind[m]]
-				with HA("G_Re_freq_" + ind[m] + "_" + ind[l] + ".h5", 'w') as A:
+				with HA("G_Re_Freq_" + ind[m] + "_" + ind[l] + ".h5", 'w') as A:
 					A['G'] = GM[ind[m], ind[l]]
 	else:
 		for l in range(len(ind)):
@@ -156,7 +158,7 @@ def compute_matrix_GfReFreq(G, grid_params=[], inv_sym=False, mu=1, nu=1, intera
 				GM[ind[l],ind[m]]=(GOR-GM[ind[l],ind[l]]-mu*mu*GM[ind[m],ind[m]])/(2*mu)
 				GM[ind[m],ind[l]]=GM[ind[l], ind[m]]
 				print "G[" + ind[l] + "," + ind[m] + "] computed"
-				with HA("G_Re_freq_"+ind[l]+"_"+ind[m]+".h5", 'w') as A:
+				with HA("G_Re_Freq_"+ind[l]+"_"+ind[m]+".h5", 'w') as A:
 					A['G'] = GM[ind[l],ind[m]]
 
 	print "matrix continuation done"
