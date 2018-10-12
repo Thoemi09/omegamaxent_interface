@@ -24,16 +24,17 @@ error_file_name="error_G.dat"
 FT_G_file_name="Fourier_transformed_data/Fourier_transform_G_ascii.dat"
 
 top_section_line="PARAMETERS IN THIS SECTION ARE SET BY compute_GfReFreq(). DO NOT MODIFY THEM. PARAMETERS IN THE OTHER SECTIONS CAN BE MODIFIED."
+
 #parameters set exclusively by the function compute_scalar_GfReFreq()
 data_str="data file:"
 boson_str="bosonic data (yes/[no]):"
 time_str="imaginary time data (yes/[no]):"
 temp_str="temperature (in energy units, k_B=1):"
+grid_params_str="output real frequency grid parameters (w_min dw w_max):"
 
 #parameters set by compute_scalar_GfReFreq() if passed to the function, otherwise they can be optionally set in file OmegaMaxEnt_TRIQS_params.dat
 err_str="error file:"
 inter_m_str="interactive mode ([yes]/no):"
-grid_params_str="output real frequency grid parameters (w_min dw w_max):"
 
 def compute_GfReFreq(G, ERR=None, grid_params=[], name="$G^R(\omega)$", interactive_mode=True, save_figures_data=True, inv_sym=False, mu=1, nu=1):
 	if not isinstance(G,Gf) and not isinstance(G,GfImFreq) and not isinstance(G,GfImTime) and not isinstance(G,BlockGf):
@@ -209,12 +210,15 @@ def compute_scalar_GfReFreq(G, ERR=0, grid_params=[], name="$G^R(\omega)$", inte
 				str_tmp = time_str + "yes" + '\n'
 			else:
 				str_tmp = time_str + '\n'
+		elif  str_tmp[0:len(grid_params_str)]==grid_params_str:
+			if len(grid_params)==3:
+				str_tmp=grid_params_str+str(grid_params[0])+" "+str(grid_params[1])+" "+str(grid_params[2])+'\n'
+			else:
+				str_tmp = grid_params_str+'\n'
 		elif error_provided and str_tmp[0:len(err_str)]==err_str:
 			str_tmp=err_str+error_file_name+'\n'
 		elif not interactive_mode and str_tmp[0:len(inter_m_str)]==inter_m_str:
 			str_tmp=inter_m_str+"no"+'\n'
-		elif len(grid_params)==3 and str_tmp[0:len(grid_params_str)]==grid_params_str:
-			str_tmp=grid_params_str+str(grid_params[0])+" "+str(grid_params[1])+" "+str(grid_params[2])+'\n'
 		pf.write(str_tmp)
 	cpf.close()
 	pf.close()
