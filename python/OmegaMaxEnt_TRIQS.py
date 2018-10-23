@@ -1,4 +1,25 @@
-
+###################################################################################
+#
+# TRIQS interface for the analytic continuation program OmegaMaxEnt
+#
+# Copyright (C) Simons Foundation
+#
+# Author: Dominic Bergeron (dominic.bergeron@usherbrooke.ca)
+#
+# TRIQS is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later
+# version.
+#
+# TRIQS is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# TRIQS. If not, see <http://www.gnu.org/licenses/>.
+#
+###################################################################################
 
 from math import pi
 import numpy as np
@@ -37,6 +58,44 @@ err_str = "error file:"
 inter_m_str = "interactive mode ([yes]/no):"
 
 def compute_GfReFreq(G, ERR=None, grid_params=[], name="$G^R(\omega)$", interactive_mode=True, save_figures_data=True, save_G=True, inv_sym=False, mu=1, nu=1):
+	"""
+	Compute a GfReFreq object or a BlockGf containing GfReFreq objects from a Matsubara input Green function using the program OmegaMaxEnt.
+	For more details, see the OmegaMaxEnt-TRIQS interface documentation and the OmegaMaxEnt user guide at
+	https://www.physique.usherbrooke.ca/MaxEnt/index.php/User_Guide.
+
+	Parameters:
+	-----------
+	G: 	Gf, GfImFreq, GfImTime or BlockGf object.
+		Input Matsubara Green function.
+
+	ERR:	Optional numpy array.
+			Standard deviation if G is scalar or has a single element.
+			ERR has the same shape as the data in G and its indices must match the mesh.
+			For a non-diagonal covariance, see the interface documentation or the OmegaMaxEnt User Guide.
+
+	grid_params:	Optional list of the form [omega_min, omega_step, omega_max].
+					Defines the real frequency grid of the Green function. If empty, the grid is set by OmegaMaxEnt.
+
+	name:	Optional string.
+			Name parameter of the output GfReFreq object.
+
+	interactive_mode:	Optional boolean.
+						Turns off the interactive mode of OmegaMaxEnt if set to False.
+
+	save_figures_data:	Optional boolean.
+						Tells OmegaMaxEnt not to save figure files if set to False.
+						Set to False if G is a matrix or a BlockGf
+
+	save_G:		Optional boolean.
+				By default, the result is save in hdf5 format in file G_Re_Freq.h5.
+
+	inv_sym:	Optional boolean.
+				If G is a matrix or a BlockGf, set inv_sym to True if G[i,j]=G[j,i]. This simplifies the calculation of the off diagonal elements.
+
+	mu, nu:		Optional paramters involved in the calculation of off-diagonal elements of matrix-valued Green functions.
+				See appendix C of the OmegaMaxEnt user guide for more details.
+	"""
+
 	if not isinstance(G,Gf) and not isinstance(G,GfImFreq) and not isinstance(G,GfImTime) and not isinstance(G,BlockGf):
 		print "compute_GfReFreq(): input type " + str(G.__class__) + " not accepted. Only objects of types Gf, GfImFreq, GfImTime or BlockGf are accepted."
 		return 0
@@ -259,12 +318,10 @@ def compute_scalar_GfReFreq(G, ERR=0, grid_params=[], name="$G^R(\omega)$", inte
 		options_list = options_list+"-ni"
 
 	# call OmegaMaxEnt
-	sp.call([OME_cmd, options_list])
-
-	# if save_figures_data:
-	# 	sp.call(OME_cmd)
-	# else:
-	# 	sp.call([OME_cmd, "-np"])
+	if len(options_list):
+		sp.call([OME_cmd, options_list])
+	else:
+		sp.call(OME_cmd)
 
 	if im_t:
 		save_Fourier_transform_G_hdf5()
