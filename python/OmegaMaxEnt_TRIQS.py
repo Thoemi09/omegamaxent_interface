@@ -101,10 +101,13 @@ def compute_GfReFreq(G, ERR=None, grid_params=[], name="$G^R(\omega)$", interact
 		return 0
 
 	if not isinstance(G,BlockGf):
-		ind=G.indices[0]
 		if len(G.target_shape)==2:
+			ind = G.indices[0]
 			if G.target_shape[0]==1 and G.target_shape[1]==1 and G.indices[0]==G.indices[1]:
-				GR=compute_scalar_GfReFreq(G[ind[0],ind[0]], ERR, grid_params, name, interactive_mode, save_figures_data)
+				Gtmp=compute_scalar_GfReFreq(G[ind[0],ind[0]], ERR, grid_params, "", interactive_mode, save_figures_data)
+				n_freq = len(Gtmp.mesh)
+				GR=GfReFreq(indices=ind,window=(Gtmp.mesh.omega_min,Gtmp.mesh.omega_max),n_points=n_freq,name=name)
+				GR[ind[0],ind[0]]=Gtmp
 			elif G.indices[0]==G.indices[1]:
 				GR=compute_matrix_GfReFreq(G, grid_params, inv_sym, mu, nu, interactive_mode,save_figures_data)
 			else:
