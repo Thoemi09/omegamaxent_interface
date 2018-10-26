@@ -237,8 +237,19 @@ def compute_scalar_GfReFreq(G, ERR=0, grid_params=[], name="$G^R(\omega)$", inte
 	if len(G.target_shape):
 		print "compute_scalar_GfReFreq(): the Green function must be scalar"
 
+	options_list = ""
+
+	if not save_figures_data:
+		options_list = "-np"
+
+	if not interactive_mode:
+		if len(options_list):
+			options_list = options_list + " -ni"
+		else:
+			options_list = "-ni"
+
 	if not path.exists(params_file):
-		create_params_file(False)
+		create_params_file(False,options_list)
 	
 	im_t=isinstance(G.mesh,MeshImTime)
 #	if im_t:
@@ -330,15 +341,6 @@ def compute_scalar_GfReFreq(G, ERR=0, grid_params=[], name="$G^R(\omega)$", inte
 			error_array=np.concatenate((tau,ERR),axis=1)
 		np.savetxt(error_file_name,error_array)
 
-	options_list = ""
-
-	if not save_figures_data:
-		options_list = "-np"
-	if not interactive_mode:
-		if len(options_list):
-			options_list = options_list+" "
-		options_list = options_list+"-ni"
-
 	# call OmegaMaxEnt
 	if len(options_list):
 		sp.call([OME_cmd, options_list])
@@ -360,12 +362,15 @@ def compute_scalar_GfReFreq(G, ERR=0, grid_params=[], name="$G^R(\omega)$", inte
 
 	return GR_omega
 
-def create_params_file(overwrite=True):
+def create_params_file(overwrite=True, options=""):
 	if not path.exists(params_file) or overwrite:
 		if not path.exists(template_params_file):
 			if path.exists(params_file):
 				os.remove(params_file)
-			sp.call(OME_cmd)
+			if len(options):
+				sp.call([OME_cmd, options])
+			else:
+				sp.call(OME_cmd)
 		tf=open(template_params_file,"r")
 		uf=open(params_file,"w")
 		uf.write(top_section_line+"\n")
