@@ -56,10 +56,10 @@ grid_params_str = "output real frequency grid parameters (w_min dw w_max):"
 #parameters set by compute_scalar_GfReFreq() if passed to the function, otherwise they can be optionally set in file OmegaMaxEnt_TRIQS_params.dat
 err_str = "error file:"
 inter_m_str = "interactive mode ([yes]/no):"
-
 SW_str="spectral function width:"
 SC_str="spectral function center:"
 dw_str="real frequency step:"
+nu_grid_str="use non uniform grid in main spectral range (yes/[no]):"
 
 def compute_GfReFreq(G, ERR=None, grid_params=[], name="$G^R(\omega)$", interactive_mode=True, save_figures_data=True, save_G=True, inv_sym=False,
 					 comp_grid_params=[], mu=1, nu=1):
@@ -237,19 +237,16 @@ def compute_scalar_GfReFreq(G, ERR=0, grid_params=[], name="$G^R(\omega)$", inte
 	if len(G.target_shape):
 		print "compute_scalar_GfReFreq(): the Green function must be scalar"
 
-	options_list = ""
+	cmd = [OME_cmd]
 
 	if not save_figures_data:
-		options_list = "-np"
+		cmd = cmd+ ["-np"]
 
 	if not interactive_mode:
-		if len(options_list):
-			options_list = options_list + " -ni"
-		else:
-			options_list = "-ni"
+		cmd = cmd + ["-ni"]
 
 	if not path.exists(params_file):
-		create_params_file(False,options_list)
+		create_params_file(False,cmd)
 	
 	im_t=isinstance(G.mesh,MeshImTime)
 #	if im_t:
@@ -342,10 +339,7 @@ def compute_scalar_GfReFreq(G, ERR=0, grid_params=[], name="$G^R(\omega)$", inte
 		np.savetxt(error_file_name,error_array)
 
 	# call OmegaMaxEnt
-	if len(options_list):
-		sp.call([OME_cmd, options_list])
-	else:
-		sp.call(OME_cmd)
+	sp.call(cmd)
 
 	if im_t:
 		save_Fourier_transform_G_hdf5()
@@ -362,15 +356,12 @@ def compute_scalar_GfReFreq(G, ERR=0, grid_params=[], name="$G^R(\omega)$", inte
 
 	return GR_omega
 
-def create_params_file(overwrite=True, options=""):
+def create_params_file(overwrite=True, cmd=[OME_cmd,"-ni"]):
 	if not path.exists(params_file) or overwrite:
 		if not path.exists(template_params_file):
 			if path.exists(params_file):
 				os.remove(params_file)
-			if len(options):
-				sp.call([OME_cmd, options])
-			else:
-				sp.call(OME_cmd)
+			sp.call(cmd)
 		tf=open(template_params_file,"r")
 		uf=open(params_file,"w")
 		uf.write(top_section_line+"\n")
@@ -395,7 +386,6 @@ def display_figures():
 	if figs_ind.shape[0]>0:
 		for i in figs_ind:
 			sname="OmegaMaxEnt_figs_"+str(i)+".py"
-#		sp.call(["python",sname])
 			fig_file=open(sname,"r")
 			fig_cmd=fig_file.read()
 			exec(fig_cmd)
