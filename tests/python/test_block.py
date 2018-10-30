@@ -47,8 +47,8 @@ wl=-7
 wr=7
 dw=0.01
 
+dw_comp=0
 SW=0
-dw_comp=0.05
 SC=0
 
 wnmax=W*R_iw_W
@@ -144,7 +144,7 @@ class OmegaMaxEnt_test_with_error(ut.TestCase):
         os.chdir("test_dir")
 
         GR = OT.compute_GfReFreq(G, ERR=ERRG, interactive_mode=inter_mode, save_figures_data=save_figs, inv_sym=inv_sym,
-                                 grid_params=[wl, dw, wr], comp_grid_params=[dw_comp, SW, SC], name="$G_{ME}$")
+                                 grid_params=[wl, dw, wr], comp_grid_params=[dw_comp, SW], name="$G_{ME}$")
 
         os.chdir("..")
         su.rmtree("test_dir")

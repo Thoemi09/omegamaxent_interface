@@ -14,37 +14,48 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 tol_int_diffA=0.05
 
-Npts_dos=1000
-
 inter_mode=False
 save_figs=False
+nu_grid=True
 
-err=1e-5
+tol_abs=1e-10
+tol_rel=1e-8
+
+err=1e-6
 err_abs=1e-10
-beta=50
+beta=100
 
 R_iw_W=5
 
-W=4
-cw=[-2, 1]
-sd=[1, 0.7]
-wgt=[1, 1]
+W=8
+cw=[-3, -1, 0, 4]
+sd=[1, 0.3 ,0.05, 2.5]
+wgt=[1, 1, 1, 1]
+
 Npks=len(cw)
 
-wmin=-10.0
-wmax=10.0
+wmin=-20.0
+wmax=20.0
 
-wl=-7
-wr=7
-dw=0.01
+N_interv_max=10000
+Npts_dos=20000
 
-dw_comp=0.05
+wl=-15
+wr=15
+dw=0.005
+
+dw_comp=0
 SW=0
 SC=0
 
 wnmax=W*R_iw_W
+
 nmax=int(ceil(beta*wnmax/(2*pi)))
-n_iwn=nmax+1
+
+ind=np.array(range(0,nmax))
+wn=(2*ind+1)*pi/beta
+
+n_iwn=len(wn)
 
 def spectr_val(w):
     W = np.sum(wgt)
@@ -74,29 +85,35 @@ class OmegaMaxEnt_test_with_error(ut.TestCase):
 
         G = G[0, 0]
 
-        errGr=err * np.absolute(G.data.real)
-        errGi=err * np.absolute(G.data.imag)
+        Gr = G.data.real
+        Gi = G.data.imag
 
-        for i in range(0,2*n_iwn):
-            if errGr[i]<err_abs:
+        G = GfImFreq(target_shape=(), beta=beta, n_points=n_iwn)
+
+        errGr = err * np.absolute(Gr)
+        errGi = err * np.absolute(Gi)
+
+        for i in range(0, 2 * n_iwn):
+            if errGr[i] < err_abs:
                 errGr[i] = err_abs
 
-        G.data.real =G.data.real + errGr * np.random.randn(2*n_iwn)
-        G.data.imag =G.data.imag + errGi * np.random.randn(2*n_iwn)
+        G.data.real = Gr + errGr * np.random.randn(2 * n_iwn)
+        G.data.imag = Gi + errGi * np.random.randn(2 * n_iwn)
 
-        errGr=np.array([errGr])
-        errGi=np.array([errGi])
+        errGr = np.array([errGr])
+        errGi = np.array([errGi])
 
-        errGr=errGr.transpose()
-        errGi=errGi.transpose()
+        errGr = errGr.transpose()
+        errGi = errGi.transpose()
 
-        ERRG=np.concatenate((errGr,errGi),axis=1)
+        ERRG = np.concatenate((errGr, errGi), axis=1)
 
         if not os.path.exists("test_dir"):
             os.mkdir("test_dir")
         os.chdir("test_dir")
 
-        GR=OT.compute_GfReFreq(G, ERR=ERRG, interactive_mode=inter_mode, save_figures_data=save_figs, grid_params=[wl, dw, wr], comp_grid_params=[dw_comp, SW, SC], name="$G_{ME}$")
+        GR = OT.compute_GfReFreq(G, ERR=ERRG, interactive_mode=inter_mode, save_figures_data=save_figs,
+                                 grid_params=[wl, dw, wr], comp_grid_params=[dw_comp, SW], non_uniform_grid=nu_grid, name="$G_{ME}$")
 
         os.chdir("..")
         su.rmtree("test_dir")

@@ -9,7 +9,7 @@ import os
 import shutil as su
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-tol_int_diffA=0.03
+tol_int_diffA=0.05
 
 Npts_dos=1000
 
@@ -42,8 +42,8 @@ wl=-7
 wr=7
 dw=0.01
 
+dw_comp=0
 SW=0
-dw_comp=0.05
 SC=0
 
 wnmax=W*R_iw_W
@@ -127,7 +127,7 @@ class OmegaMaxEnt_test_with_error(ut.TestCase):
             os.mkdir("test_dir")
         os.chdir("test_dir")
 
-        GR=OT.compute_GfReFreq(G_rot, ERR=ERRG, interactive_mode=inter_mode, save_figures_data=save_figs, inv_sym=inv_sym, grid_params=[wl, dw, wr], comp_grid_params=[dw_comp, SW, SC], name="$G_{ME}$")
+        GR=OT.compute_GfReFreq(G_rot, ERR=ERRG, interactive_mode=inter_mode, save_figures_data=save_figs, inv_sym=inv_sym, grid_params=[wl, dw, wr], comp_grid_params=[dw_comp, SW], name="$G_{ME}$")
 
         os.chdir("..")
         su.rmtree("test_dir")

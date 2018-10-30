@@ -9,7 +9,7 @@ import os
 import shutil as su
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-tol_int_diffA=0.03
+tol_int_diffA=0.05
 
 Npts_dos=1000
 
