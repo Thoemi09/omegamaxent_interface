@@ -51,6 +51,8 @@ OmegaMaxEnt_data::OmegaMaxEnt_data(int arg_N, char *args[])
 {
     input_params_file_name=default_input_params_file_name;
 	
+	interactive_mode=true;
+	
     if (arg_N>1)
     {
         for (int j=1; j<arg_N; j++)
@@ -64,6 +66,11 @@ OmegaMaxEnt_data::OmegaMaxEnt_data(int arg_N, char *args[])
 				else if (!strcmp(args[j],"-np"))
 				{
 					graph_2D::print_to_file=false;
+				}
+				else if (!strcmp(args[j],"-ni"))
+				{
+					interactive_mode=false;
+					graph_2D::display_figures=false;
 				}
                 else
                     cout<<"invalid option: "<<args[j]<<'\n';
@@ -82,7 +89,6 @@ OmegaMaxEnt_data::OmegaMaxEnt_data(int arg_N, char *args[])
 	preproc_complete=false;
 	initialize_maxent=true;
 	print_other_params=false;
-	interactive_mode=true;
 	time_params_file=NULL;
 	time_other_params_file=NULL;
 	ind_alpha_vec=0;
@@ -108,6 +114,7 @@ void OmegaMaxEnt_data::loop_run()
 	compute_P_alpha_G=false;
 	gaussian_grid_density=false;
 	uniform_grid=false;
+	compute_Pade=false;
 	ind_noise=0;
 	N_params_noise=0;
 	
@@ -117,33 +124,36 @@ void OmegaMaxEnt_data::loop_run()
 	ofstream warnings_file("warnings.txt");
 	set_stream_err2(warnings_file);
 	
-	ifstream file("license_info_displayed");
-	if (!file)
+	if (interactive_mode)
 	{
-		file.clear();
-		ofstream outputfile("license_info_displayed");
-		outputfile.close();
-		display_license();
-	}
-	else
-	{
-		file.close();
-		file.open("notice_displayed");
+		ifstream file("license_info_displayed");
 		if (!file)
 		{
 			file.clear();
-			ofstream outputfile("notice_displayed");
+			ofstream outputfile("license_info_displayed");
 			outputfile.close();
-			display_notice();
+			display_license();
 		}
 		else
 		{
 			file.close();
-			cout<<OmegaMaxEnt_notice<<endl;
+			file.open("notice_displayed");
+			if (!file)
+			{
+				file.clear();
+				ofstream outputfile("notice_displayed");
+				outputfile.close();
+				display_notice();
+			}
+			else
+			{
+				file.close();
+				cout<<OmegaMaxEnt_notice<<endl;
+			}
 		}
 	}
 	
-	if (graph_2D::print_to_file) cout<<"Figures can be displayed by executing the command \"python OmegaMaxEnt_figs_#.py\" where # is one of the indices in file figs_ind.dat\n";
+	if (graph_2D::print_to_file && interactive_mode) cout<<"Figures can be displayed by executing the command \"python OmegaMaxEnt_figs_#.py\" where # is one of the indices in file figs_ind.dat\n";
 	
 	do
 	{
@@ -189,9 +199,8 @@ void OmegaMaxEnt_data::loop_run()
 			Ginf_finite=true;
 		}
 		
-		if (Ginf_finite && !eval_moments_in.size()) eval_moments=true;
+		if (Ginf_finite && !eval_moments_in.size() && !G_omega_inf_in.size()) eval_moments=true;
 
-//		if (!interactive_mode)
 		if (!graph_2D::display_figures && !graph_2D::print_to_file)
 		{
 			show_optimal_alpha_figs=false;
@@ -648,7 +657,6 @@ void OmegaMaxEnt_data::loop_run()
 					
 					compute_Bryan_spectrum(Abr);
 				}
-				
 				
 				char alpha_output[100], alpha_output_format[]="alpha: % 1.4e,  Q: % 1.4e,  S: % 1.4e,  chi2: % 1.4e\n";
 				double Q=chi2_vec(ind_alpha_vec-1)-alpha_vec(ind_alpha_vec-1)*S_vec(ind_alpha_vec-1);
@@ -1522,13 +1530,13 @@ void OmegaMaxEnt_data::loop_run()
 								xlims[1]=w(Nw-1);
 							*/
 								
-								gv[ind_fig]->add_data(w_dense.memptr(), Gr_Re_w.memptr(), Nw_dense);
+								gv[ind_fig]->add_data(w_out.memptr(), Gr_Re_w.memptr(), Nw_out);
 								gv[ind_fig]->add_attribute(attrG1);
 								gv[ind_fig]->add_to_legend(lgdG1);
 							//	gv[ind_fig]->add_data(w_dense.memptr(), Gr_Re_w_KK.memptr(), Nw_dense);
 							//	gv[ind_fig]->add_attribute(attrG3);
 							//	gv[ind_fig]->add_to_legend(lgdG3);
-								gv[ind_fig]->add_data(w_dense.memptr(), Gi_Re_w.memptr(), Nw_dense);
+								gv[ind_fig]->add_data(w_out.memptr(), Gi_Re_w.memptr(), Nw_out);
 								gv[ind_fig]->add_attribute(attrG2);
 								gv[ind_fig]->add_to_legend(lgdG2);
 							//	gv[ind_fig]->add_data(w_dense.memptr(), Gi_Re_w_FFT.memptr(), Nw_dense);
@@ -1553,6 +1561,7 @@ void OmegaMaxEnt_data::loop_run()
 								
 								char title_opt[]="Spectrum at optimal $\\\\alpha$";
 								char lgd_opt[100], lgd_opt_r[100], lgd_opt_l[100], lgd_DM[]="default model", lgd_ref[]="reference spectrum";
+								char lgd_Pade[]="Pade";
 								sprintf(lgd_opt,"$\\\\alpha_{opt}=%4.2e$",alpha_vec(ind_alpha_opt));
 								sprintf(lgd_opt_r,"$\\\\alpha=%4.2e$",alpha_vec(ind_alpha_opt_r));
 								sprintf(lgd_opt_l,"$\\\\alpha=%4.2e$",alpha_vec(ind_alpha_opt_l));
@@ -1566,6 +1575,13 @@ void OmegaMaxEnt_data::loop_run()
 									gv[ind_fig]->add_data(w_ref.memptr(),A_ref.memptr(),w_ref.n_rows);
 									gv[ind_fig]->add_to_legend(lgd_ref);
 									A_all=join_vert(A_all,A_ref);
+								}
+								if (compute_Pade && GR_Pade.n_rows)
+								{
+									vec imG_Pade=-2*imag(GR_Pade);
+									gv[ind_fig]->add_data(w_out.memptr(),imG_Pade.memptr(),Nw_out);
+									gv[ind_fig]->add_to_legend(lgd_Pade);
+									A_all=join_vert(A_all,imG_Pade);
 								}
 								if (A_opt_l.n_rows)
 								{
@@ -1808,6 +1824,10 @@ bool OmegaMaxEnt_data::preproc()
 	peak_exists=false;
 	main_spectral_region_set=false;
 	
+	bool use_Riemann_integ=false;
+	
+	vec extr_w(2);
+	
 	if (!boson) maxM_default=3;
 	else maxM_default=1;
 	
@@ -1850,9 +1870,12 @@ bool OmegaMaxEnt_data::preproc()
 			}
 			jfit=0;
 
+//			cout<<"maxM: "<<maxM<<endl;
+//			cout<<"moments_provided: "<<moments_provided<<endl;
+//			cout<<"eval_moments: "<<eval_moments<<endl;
 			if ( (!moments_provided && maxM>=0) || eval_moments )
 			{
-				if (!Ginf_finite)
+				if (!Ginf_finite || G_omega_inf_in.size())
 				{
 					if (!compute_moments_omega_n())
 					{
@@ -1886,8 +1909,9 @@ bool OmegaMaxEnt_data::preproc()
 			Gtau=green_data.col(col_Gtau-1);
 			if (Gtau.max()*Gtau.min()<0)
 			{
-				cout<<"error: G(tau) must not change sign.\n";
-				return false;
+				cout<<"warning: sign change in G(tau).\n";
+	//			cout<<"error: G(tau) must not change sign.\n";
+	//			return false;
 			}
 			if (Gtau(0)>0) Gtau=-Gtau;
 			Gchi2=Gtau;
@@ -1938,7 +1962,7 @@ bool OmegaMaxEnt_data::preproc()
 				return false;
 			}
 			
-			if ( (!moments_provided && maxM>0) || eval_moments )
+			if ( !moments_provided || eval_moments )
 			{
 				if (!compute_moments_tau_fermions())
 				{
@@ -2078,6 +2102,9 @@ bool OmegaMaxEnt_data::preproc()
 		cout<<"frequency step at the grid origin: "<<w(jc+1)-w(jc)<<endl;
 		cout<<"number of real frequencies in the grid: "<<Nw<<endl;
 		
+		extr_w(0)=w(0);
+		extr_w(1)=w(Nw-1);
+		
 		if (displ_prep_figs)
 		{
 			vec diff_w=w.rows(1,Nw-1)-w.rows(0,Nw-2);
@@ -2156,15 +2183,15 @@ bool OmegaMaxEnt_data::preproc()
 			default_model.zeros(Nw);
 			default_model.rows(1,Nw-2)=1/dwS;
 		}
-		
-//		Kernel_G_fermions();
-//		Kernel_G_fermions_grid_transf_2();
-		
+	
 		if (!uniform_grid)
-			Kernel_G_fermions_grid_transf();
+		{
+			if (use_Riemann_integ) Kernel_G_fermions_Riemann_integ();
+			else Kernel_G_fermions_grid_transf();
+		}
 		else
 			Kernel_G_fermions_grid_transf_omega();
-		
+
 		mat norm_DM_tmp=KM.row(0)*default_model;
 		default_model=M0*default_model/norm_DM_tmp(0);
 		
@@ -2227,8 +2254,8 @@ bool OmegaMaxEnt_data::preproc()
 		
 		if (cov_diag) NnC=Nn/2;
 		else NnC=Nn;
-		
-		integrate_P_A_alpha();
+	
+//		integrate_P_A_alpha();
 		
 		if (displ_adv_prep_figs)
 		{
@@ -2281,7 +2308,7 @@ bool OmegaMaxEnt_data::preproc()
 			jfit=0;
 			if ( (!moments_provided && maxM>0) || eval_moments )
 			{
-				if (!Ginf_finite)
+				if (!Ginf_finite || G_omega_inf_in.size())
 				{
 					if (!compute_moments_omega_n())
 					{
@@ -2321,8 +2348,9 @@ bool OmegaMaxEnt_data::preproc()
 			Gtau=green_data.col(col_Gtau-1);
 			if (Gtau.max()*Gtau.min()<0)
 			{
-				cout<<"error: G(tau) must not change sign.\n";
-				return false;
+				cout<<"warning: sign change in G(tau).\n";
+		//		cout<<"error: G(tau) must not change sign.\n";
+		//		return false;
 			}
 			if (Gtau(0)>0) Gtau=-Gtau;
 			Gchi2=Gtau;
@@ -2377,7 +2405,7 @@ bool OmegaMaxEnt_data::preproc()
 				return false;
 			}
 
-			if ( (!moments_provided && maxM>0) || eval_moments )
+			if ( !moments_provided  || eval_moments )
 			{
 				if (!compute_moments_tau_bosons())
 				{
@@ -2504,6 +2532,9 @@ bool OmegaMaxEnt_data::preproc()
 		cout<<"boundaries of main spectral range: "<<wl<<", "<<wr<<endl;
 		cout<<"frequency step at the grid origin: "<<w(jc+1)-w(jc)<<endl;
 		cout<<"number of real frequencies in the grid: "<<Nw<<endl;
+		
+		extr_w(0)=w(0);
+		extr_w(1)=w(Nw-1);
 		
 		if (displ_prep_figs)
 		{
@@ -2721,8 +2752,9 @@ bool OmegaMaxEnt_data::preproc()
 			Gtau=green_data.col(col_Gtau-1);
 			if (Gtau.max()*Gtau.min()<0)
 			{
-				cout<<"error: G(tau) must not change sign.\n";
-				return false;
+				cout<<"warning: sign change in G(tau).\n";
+		//		cout<<"error: G(tau) must not change sign.\n";
+		//		return false;
 			}
 			if (Gtau(0)>0) Gtau=-Gtau;
 			Gchi2=Gtau;
@@ -2777,7 +2809,7 @@ bool OmegaMaxEnt_data::preproc()
 				return false;
 			}
 		
-			if ( (!moments_provided && maxM>0) || eval_moments )
+			if ( !moments_provided || eval_moments )
 			{
 				if (!compute_moments_tau_bosons())
 				{
@@ -2893,6 +2925,9 @@ bool OmegaMaxEnt_data::preproc()
 		cout<<"boundaries of main spectral range:  0, "<<wr<<endl;
 		cout<<"frequency step at the grid origin: "<<w(1)-w(0)<<endl;
 		cout<<"number of real frequencies in the grid: "<<Nw<<endl;
+		
+		extr_w(0)=-w(Nw-1);
+		extr_w(1)=w(Nw-1);
 		
 		if (displ_prep_figs)
 		{
@@ -3062,8 +3097,161 @@ bool OmegaMaxEnt_data::preproc()
 			graph_2D::show_figures();
 		}
 	}
+
+	set_output_frequency_grid(extr_w);
+	
+	if (compute_Pade)
+	{
+		if (A_ref_file.size())
+		{
+			if (!set_A_ref()) cout<<"warning: reference spectrum could not be defined\n";
+		}
+		
+		Pade_G_re_omega_name="Pade_Green_function";
+		if (output_name_suffix.size())
+		{
+			if (output_name_suffix[0]!='_') Pade_G_re_omega_name+='_';
+			Pade_G_re_omega_name+=output_name_suffix;
+		}
+		Pade_G_re_omega_name+=".dat";
+		
+		if (!N_Pade_in.size() || N_Pade>Nn) N_Pade=Nn;
+		if (!eta_Pade_in.size()) eta_Pade=tem/100;
+		
+		compute_G_with_Pade(w_out, N_Pade, eta_Pade);
+	}
 	
 	return true;
+}
+
+void OmegaMaxEnt_data::compute_G_with_Pade(vec wP, int NP, double eta)
+{
+	cout<<"computing real frequency Green function with Pade\n";
+	
+//	double tol_sv=1e-4;
+	
+	int j;
+	int NwP=wP.n_rows;
+	
+//	cout<<"N_Pade: "<<N_Pade<<endl;
+//	cout<<"eta: "<<eta<<endl;
+//	cout<<"NwP: "<<NwP<<endl;
+	
+	cx_vec coeffs(NP,fill::zeros);
+	cx_vec iwn(Nn,fill::zeros);
+	cx_vec cx_wP(NwP,fill::zeros);
+	vec eta_v=eta*ones<vec>(NwP);
+	
+	cx_wP.set_real(wP);
+	cx_wP.set_imag(eta_v);
+	
+	iwn.set_imag(wn);
+	
+	pade_cont_frac_coef_rec(G.memptr(), iwn.memptr(), NP, coeffs.memptr());
+
+//	cout<<"Pade coefficients computed\n";
+	
+	GR_Pade.zeros(NwP);
+	
+	for (j=0; j<NwP; j++)
+		GR_Pade(j)=pade(cx_wP(j), NP, iwn.memptr(), coeffs.memptr());
+	
+//	cout<<"retarded Green function computed\n";
+	
+	vec G_Pade_re=real(GR_Pade);
+	vec G_Pade_im=imag(GR_Pade);
+	
+	vec imG=-2*G_Pade_im;
+	
+	if (Ginf_finite) G_Pade_re=G_Pade_re+G_omega_inf;
+	
+	mat M_save(NwP,3);
+	M_save.col(0)=wP;
+	M_save.col(1)=G_Pade_re;
+	M_save.col(2)=G_Pade_im;
+	
+	string file_name_str=Pade_G_re_omega_name;
+	remove(file_name_str.c_str());
+	M_save.save(file_name_str,raw_ascii);
+	
+/*
+	vec A_pi(Nw,fill::zeros), sK;
+	mat U, V;
+	if (!svd(U,sK,V,K,"std"))
+	{
+		cout<<"compute_G_with_Pade(): svd of kernel failed\n";
+	}
+	
+	int dim_wn=2*Nn;
+	int dim_w=Nw-2;
+	int ind0=1;
+	int indf=Nw-2;
+	if (col_Gi<=0)
+	{
+		dim_wn=Nn;
+		dim_w=Nw-1;
+		ind0=0;
+	}
+	
+	mat invK(dim_w,dim_wn,fill::zeros);
+	
+	int dim_min=dim_wn;
+	if (dim_w<dim_min) dim_min=dim_w;
+	
+//	cout<<setw(10)<<0<<sK(0)<<endl;
+	
+	invK(0,0)=1.0/sK(0);
+	j=1;
+	while (j<dim_min && sK(j)>tol_sv*sK(0))
+	{
+//		cout<<setw(10)<<j<<sK(j)<<endl;
+		invK(j,j)=1.0/sK(j);
+		j++;
+	}
+	
+	A_pi.rows(ind0,indf)=V*invK*U.t()*Gchi2;
+*/
+
+	if (displ_prep_figs)
+	{
+		graph_2D g1, g2;
+		char xl[]="$\\\\omega$";
+		char lgdr[]="Re$[G(\\omega)]$";
+		char lgdi[]="Im$[G(\\omega)]$";
+		char lgdA[]="-2Im$[G(\\omega)]$";
+		char attr_r[]="'b'";
+		char attr_i[]="'r'";
+		char title[]="Real frequency result from Pade";
+		
+		g1.add_data(wP.memptr(),G_Pade_re.memptr(),NwP);
+		g1.add_attribute(attr_r);
+		g1.add_to_legend(lgdr);
+		g1.add_data(wP.memptr(),G_Pade_im.memptr(),NwP);
+		g1.add_attribute(attr_i);
+		g1.add_to_legend(lgdi);
+		g1.set_axes_labels(xl,NULL);
+		g1.add_title(title);
+		g1.curve_plot();
+		
+		g2.add_data(wP.memptr(),imG.memptr(),NwP);
+		g2.add_attribute(attr_i);
+		g2.add_to_legend(lgdA);
+//		g2.add_data(w.memptr(),A_pi.memptr(),Nw);
+//		g2.add_attribute("'m'");
+//		g2.add_to_legend("$A_{pinv}$");
+		if (A_ref_file.size() && A_ref.n_rows)
+		{
+			g2.add_data(w_ref.memptr(),A_ref.memptr(),w_ref.n_rows);
+			g2.add_attribute("'m'");
+			g2.add_to_legend("reference spectrum");
+		}
+		g2.set_axes_labels(xl,NULL);
+		g2.add_title("-2Im$[G(\\omega)]$ from Pade");
+		g2.curve_plot();
+		
+		if (graph_2D::display_figures) cout<<"close the figures to resume execution\n";
+		graph_2D::show_figures();
+	}
 }
 
 void OmegaMaxEnt_data::compute_Re_chi_omega(vec Ap)
@@ -3077,80 +3265,7 @@ void OmegaMaxEnt_data::compute_Re_chi_omega(vec Ap)
 	vec coeffs;
 	
 	spline_chi_part(w, Nw_lims, ws, Ap, coeffs);
-	
-	vec extr_w(2);
-	extr_w(0)=-w(Nw-1);
-	extr_w(1)=w(Nw-1);
-	
-	set_output_frequency_grid(extr_w);
-	
-/*
-	double w_dense_min, w_dense_max, w_range, dw_dense;
-	vec Dw=w.rows(1,Nw-1)-w.rows(0,Nw-2);
-	double dw_min=Dw.min();
-	
-	if (output_grid_params_in.size() && output_grid_params(0)<0 && output_grid_params(2)>0 && output_grid_params(0)>-w(Nw-1) && output_grid_params(2)<w(Nw-1))
-	{
-		w_dense_min=output_grid_params(0);
-		w_dense_max=output_grid_params(2);
-		dw_dense=output_grid_params(1);
- 
-		w_range=w_dense_max-w_dense_min;
-		if (dw_dense>2*dw_min)
-		{
-			cout<<"compute_Re_G_omega(): invalid output frequency step. Setting it to minimum step in the grid.\n";
-			dw_dense=dw_min;
-		}
-	
-		int Nw_p, Nw_m;
-		Nw_p=(int)floor(w_dense_max/dw_dense)+1;
-		Nw_m=(int)floor(fabs(w_dense_min)/dw_dense);
-		
-		vec w_dense_p=linspace<vec>(0,Nw_p-1,Nw_p)*dw_dense;
-		vec w_dense_m=-linspace<vec>(1,Nw_m,Nw_m)*dw_dense;
-		w_dense=join_vert(flipud(w_dense_m),w_dense_p);
-		Nw_dense=Nw_p+Nw_m;
-	}
-	else
-	{
-		if (output_grid_params_in.size())
-		{
-			cout<<"compute_Re_G_omega(): invalid output real frequency grid parameters.\n";
-			if (output_grid_params(0)>0 || output_grid_params(2)<0) cout<<"omega=0 is not in the provided frequency range\n";
-			if (output_grid_params(0)<w(0) || output_grid_params(2)>w(Nw-1)) cout<<"at least one extremum is outside the range where the spectrum is defined\n";
-			cout<<"Using the default output real frequency grid.\n";
-		}
-		dw_dense=dw_min;
-		w_range=R_SW_G_Re_w_range*SW;
-		double log2_Nw_dense=ceil(log2(w_range/dw_dense));
-		int Nw_p=pow(2,log2_Nw_dense-1);
-		vec w_dense_p=linspace<vec>(0,Nw_p,Nw_p+1)*dw_dense;
-		vec w_dense_m=-linspace<vec>(1,Nw_p,Nw_p)*dw_dense;
-		w_dense=join_vert(flipud(w_dense_m),w_dense_p);
-		Nw_dense=2*Nw_p+1;
-		w_dense_min=w_dense(0);
-		w_dense_max=w_dense(Nw_dense-1);
-		w_range=w_dense_max-w_dense_min;
-		
-		while (w_dense_min<-w(Nw-1) || w_dense_max>w(Nw-1))
-		{
-			Nw_p=Nw_p/2;
-			w_dense_p=w_dense_p(0,Nw_p);
-			w_dense_m=w_dense_m(0,Nw_p-1);
-			w_dense=join_vert(flipud(w_dense_m),w_dense_p);
-			Nw_dense=2*Nw_p+1;
-			w_dense_min=w_dense(0);
-			w_dense_max=w_dense(Nw_dense-1);
-			w_range=w_dense_max-w_dense_min;
-		}
-	}
-	
-	cout<<"number of points in the output real frequency grid: "<<Nw_dense<<endl;
-	cout<<"frequency step of the output real frequency grid: "<<dw_dense<<endl;
-	cout<<"minimum frequency of the output real frequency grid: "<<w_dense_min<<endl;
-	cout<<"maximum frequency of the output real frequency grid: "<<w_dense_max<<endl;
-*/
-	
+
 	int j0;
 	j=0;
 	while (j<Nw_dense && w_dense(j)<0) j++;
@@ -3170,8 +3285,6 @@ void OmegaMaxEnt_data::compute_Re_chi_omega(vec Ap)
 	
 	Fourier_transform_spectrum(w_dense, A_dense, t, At);
 	
-//	cout<<"imag(dA(t)/dt|_t=0): "<<imag(At(1)-At(0))/t(1)<<endl;
-	
 	t_re=t;
 	G_t_re=dcomplex(0,1.0)*At;
 	
@@ -3189,14 +3302,79 @@ void OmegaMaxEnt_data::compute_Re_chi_omega(vec Ap)
 	
 	compute_G_Re_omega_from_A_t(t, At, G_Re_w);
 	Gr_Re_w=-real(G_Re_w);
+	dG_w=-dG_w;
 	Gi_Re_w_FFT=-imag(G_Re_w);
+	
+	double DwKK=R_wKK_SW*SW;
+	
+	int jKK_r;
+	j=j0;
+	while (j<Nw_dense && w_dense(j)<DwKK) j++;
+	jKK_r=j;
+	
+	vec wKK=w_dense.rows(j0,jKK_r);
+	
+	int NwKK=jKK_r-j0+1;
+
+	void *par[5];
+	par[0]=&w;
+	par[1]=&Nw_lims;
+	par[2]=&ws;
+	par[3]=&coeffs;
+	
+	fctPtr1 Ptr=static_cast<fctPtr1> (&OmegaMaxEnt_data::KK_integ_chi);
+	
+	double tol0=1e-4;
+	double tol_r=1e-8;
+	double tol_min=1e-10;
+	double Rwdw=1e-10;
+	vec tol;
+	
+	int Nint=4;
+	vec lims(Nint+1);
+	
+	lims(0)=-w(Nw-1);
+	lims(1)=-w(Nw_lims(0));
+	lims(2)=0;
+	lims(3)=w(Nw_lims(0));
+	lims(4)=w(Nw-1);
+	
+	vec Gr_Re_w_tmp;
+	
+	Gr_Re_w_tmp.zeros(NwKK,1);
+	tol=tol0*ones(NwKK,1);
+	KK_integrate(wKK, Ptr, par, Rwdw, Gr_Re_w_tmp, tol, lims);
+	tol=tol_r*abs(Gr_Re_w_tmp);
+	for (j=0; j<NwKK; j++) if (tol(j)<tol_min) tol(j)=tol_min;
+	KK_integrate(wKK, Ptr, par, Rwdw, Gr_Re_w_tmp, tol, lims);
+	Gr_Re_w_tmp=-Gr_Re_w_tmp/PI;
+	
+	Gr_Re_w_KK.zeros(2*NwKK-1);
+	Gr_Re_w_KK.rows(NwKK-1,2*NwKK-2)=Gr_Re_w_tmp;
+	Gr_Re_w_KK.rows(0,NwKK-2)=flipud(Gr_Re_w_tmp.rows(1,NwKK-1));
+	
+	Gr_Re_w.rows(j0-NwKK+1,j0+NwKK-1)=Gr_Re_w_KK;
+	
+	if (w_out(0)!=w_dense(0) || w_out(Nw_out-1)!=w_dense(Nw_dense-1) || Nw_out==Nw_dense)
+	{
+		coeffs.zeros(4*(Nw_dense-1));
+		spline_coeffs_rel(w_dense.memptr(), Gi_Re_w.memptr(), Nw_dense, coeffs.memptr());
+		spline_val(w_out, w_dense, coeffs, Gi_Re_w);
+		
+		coeffs.zeros();
+		coeffs(0)=dG_w(0);
+		coeffs(1)=dG_w(1);
+		spline_coeffs_rel(w_dense.memptr(), Gr_Re_w.memptr(), Nw_dense, coeffs.memptr());
+		spline_val(w_out, w_dense, coeffs, Gr_Re_w);
+	}
 	
 	if (Ginf_finite)
 	{
 		Gr_Re_w=Gr_Re_w+G_omega_inf;
 	}
 	
-	M_save.col(0)=w_dense;
+	M_save.zeros(Nw_out,3);
+	M_save.col(0)=w_out;
 	M_save.col(1)=Gr_Re_w;
 	M_save.col(2)=Gi_Re_w;
 	
@@ -3207,6 +3385,7 @@ void OmegaMaxEnt_data::compute_Re_chi_omega(vec Ap)
 	
 	if (compute_G_Re_w_KK)
 	{
+	/*
 		void *par[5];
 		par[0]=&w;
 		par[1]=&Nw_lims;
@@ -3231,7 +3410,7 @@ void OmegaMaxEnt_data::compute_Re_chi_omega(vec Ap)
 		lims(4)=w(Nw-1);
 		
 		vec Gr_Re_w_tmp;
-		
+	*/
 		Gr_Re_w_tmp.zeros(Nw_dense-j0,1);
 		tol=tol0*ones(Nw_dense-j0,1);
 		KK_integrate(w_dense.rows(j0,Nw_dense-1), Ptr, par, Rwdw, Gr_Re_w_tmp, tol, lims);
@@ -3304,79 +3483,6 @@ void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 	
 	spline_G_part(w, Nw_lims, ws, Ap/2, coeffs);
 	
-	vec extr_w(2);
-	extr_w(0)=w(0);
-	extr_w(1)=w(Nw-1);
-	
-	set_output_frequency_grid(extr_w);
-	
-/*
-	double w_dense_min, w_dense_max, dw_dense, w_range;
-	vec Dw=w.rows(1,Nw-1)-w.rows(0,Nw-2);
-	double dw_min=Dw.min();
-	
-	if (output_grid_params_in.size() && output_grid_params(0)<0 && output_grid_params(2)>0 && output_grid_params(0)>w(0) && output_grid_params(2)<w(Nw-1))
-	{
-		w_dense_min=output_grid_params(0);
-		w_dense_max=output_grid_params(2);
-		dw_dense=output_grid_params(1);
-	
-		w_range=w_dense_max-w_dense_min;
-		if (dw_dense>2*dw_min)
-		{
-			cout<<"compute_Re_G_omega(): invalid output frequency step. Setting it to minimum step in the grid.\n";
-			dw_dense=dw_min;
-		}
-	
-		int Nw_p, Nw_m;
-		Nw_p=(int)floor(w_dense_max/dw_dense)+1;
-		Nw_m=(int)floor(fabs(w_dense_min)/dw_dense);
-		
-		vec w_dense_p=linspace<vec>(0,Nw_p-1,Nw_p)*dw_dense;
-		vec w_dense_m=-linspace<vec>(1,Nw_m,Nw_m)*dw_dense;
-		w_dense=join_vert(flipud(w_dense_m),w_dense_p);
-		Nw_dense=Nw_p+Nw_m;
-	}
-	else
-	{
-		if (output_grid_params_in.size())
-		{
-			cout<<"compute_Re_G_omega(): invalid output real frequency grid parameters.\n";
-			if (output_grid_params(0)>0 || output_grid_params(2)<0) cout<<"omega=0 is not in the provided frequency range\n";
-			if (output_grid_params(0)<w(0) || output_grid_params(2)>w(Nw-1)) cout<<"at least one extremum is outside the range where the spectrum is defined\n";
-			cout<<"Using the default output real frequency grid.\n";
-		}
-		dw_dense=dw_min;
-		w_range=R_SW_G_Re_w_range*SW;
-		double log2_Nw_dense=ceil(log2(w_range/dw_dense));
-		int Nw_p=pow(2,log2_Nw_dense-1);
-		vec w_dense_p=linspace<vec>(0,Nw_p,Nw_p+1)*dw_dense;
-		vec w_dense_m=-linspace<vec>(1,Nw_p,Nw_p)*dw_dense;
-		w_dense=join_vert(flipud(w_dense_m),w_dense_p);
-		Nw_dense=2*Nw_p+1;
-		w_dense_min=w_dense(0);
-		w_dense_max=w_dense(Nw_dense-1);
-		w_range=w_dense_max-w_dense_min;
-		
-		while (w_dense_min<w(0) || w_dense_max>w(Nw-1))
-		{
-			Nw_p=Nw_p/2;
-			w_dense_p=w_dense_p(0,Nw_p);
-			w_dense_m=w_dense_m(0,Nw_p-1);
-			w_dense=join_vert(flipud(w_dense_m),w_dense_p);
-			Nw_dense=2*Nw_p+1;
-			w_dense_min=w_dense(0);
-			w_dense_max=w_dense(Nw_dense-1);
-			w_range=w_dense_max-w_dense_min;
-		}
-	}
- 
- cout<<"number of points in the output real frequency grid: "<<Nw_dense<<endl;
- cout<<"frequency step of the output real frequency grid: "<<dw_dense<<endl;
- cout<<"minimum frequency of the output real frequency grid: "<<w_dense_min<<endl;
- cout<<"maximum frequency of the output real frequency grid: "<<w_dense_max<<endl;
-	*/
-	
 	spline_val_G_part(w_dense, w, Nw_lims, ws, coeffs, Gi_Re_w);
 	Gi_Re_w=-Gi_Re_w;
 	if (boson) Gi_Re_w=w_dense%Gi_Re_w;
@@ -3406,22 +3512,87 @@ void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 	Gr_Re_w=real(G_Re_w);
 	Gi_Re_w_FFT=imag(G_Re_w);
 	
-	if (Ginf_finite)
+// use Kramers-Kronig around omega=0
+	double tol0=1e-4;
+	double tol_r=1e-8;
+	double tol_min=1e-10;
+	double Rwdw=1e-10;
+	
+	double DwKK=R_wKK_SW*SW;
+	
+	int jKK_l, jKK_r;
+	j=0;
+	while (j<Nw_dense && w_dense(j)<-DwKK) j++;
+	jKK_l=j-1;
+	while (j<Nw_dense && w_dense(j)<DwKK) j++;
+	jKK_r=j;
+	
+	vec wKK=w_dense.rows(jKK_l,jKK_r);
+	
+	int NwKK=jKK_r-jKK_l+1;
+//	cout<<"w_dense(jKK_l)	w_dense(jKK_r): "<<setw(20)<<w_dense(jKK_l)<<w_dense(jKK_r)<<endl;
+//	cout<<"NwKK: "<<NwKK<<endl;
+	
+	void *par[5];
+	fctPtr1 Ptr;
+	
+	par[0]=&w;
+	par[1]=&Nw_lims;
+	par[2]=&ws;
+	par[3]=&coeffs;
+	
+	if (!boson)
+		Ptr=static_cast<fctPtr1> (&OmegaMaxEnt_data::KK_integ);
+	else if (col_Gi>0)
+		Ptr=static_cast<fctPtr1> (&OmegaMaxEnt_data::KK_integ_boson);
+	else
 	{
-		Gr_Re_w=Gr_Re_w+G_omega_inf;
+		cout<<"compute_Re_G_omega(): wrong function! Use compute_Re_chi_omega()\n";
+		return;
 	}
 	
-	M_save.col(0)=w_dense;
-	M_save.col(1)=Gr_Re_w;
-	M_save.col(2)=Gi_Re_w;
+	vec tol;
 	
-	file_name_str=output_dir_fin;
-	file_name_str+=G_re_omega_name;
-	remove(file_name_str.c_str());
-	M_save.save(file_name_str,raw_ascii);
+	int Nint=4;
+	vec lims(Nint+1);
+	
+	lims(0)=w(0);
+	lims(4)=w(Nw-1);
+	if (w(Nw_lims(0))<0 && w(Nw_lims(1))>0)
+	{
+		lims(1)=w(Nw_lims(0));
+		lims(2)=0;
+		lims(3)=w(Nw_lims(1));
+	}
+	else if (w(Nw_lims(0))>0)
+	{
+		lims(1)=0;
+		lims(2)=w(Nw_lims(0));
+		lims(3)=w(Nw_lims(1));
+	}
+	else
+	{
+		lims(1)=w(Nw_lims(0));
+		lims(2)=w(Nw_lims(1));
+		lims(3)=0;
+	}
+	
+	Gr_Re_w_KK.zeros(NwKK,1);
+	tol=tol0*ones(NwKK,1);
+	KK_integrate(wKK, Ptr, par, Rwdw, Gr_Re_w_KK, tol, lims);
+	tol=tol_r*abs(Gr_Re_w_KK);
+	for (j=0; j<NwKK; j++) if (tol(j)<tol_min) tol(j)=tol_min;
+	
+	KK_integrate(wKK, Ptr, par, Rwdw, Gr_Re_w_KK, tol, lims);
+	Gr_Re_w_KK=Gr_Re_w_KK/PI;
+	
+	Gr_Re_w.rows(jKK_l,jKK_r)=Gr_Re_w_KK;
+	
+//	cout<<"real part of G computed\n";
 	
 	if (compute_G_Re_w_KK)
 	{
+	/*
 		double tol0=1e-4;
 		double tol_r=1e-8;
 		double tol_min=1e-10;
@@ -3449,7 +3620,7 @@ void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 		
 		int Nint=4;
 		vec lims(Nint+1);
-		
+	
 		lims(0)=w(0);
 		lims(4)=w(Nw-1);
 		if (w(Nw_lims(0))<0 && w(Nw_lims(1))>0)
@@ -3470,7 +3641,7 @@ void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 			lims(2)=w(Nw_lims(1));
 			lims(3)=0;
 		}
-		
+	*/
 		Gr_Re_w_KK.zeros(Nw_dense,1);
 		tol=tol0*ones(Nw_dense,1);
 		KK_integrate(w_dense, Ptr, par, Rwdw, Gr_Re_w_KK, tol, lims);
@@ -3479,6 +3650,37 @@ void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 		KK_integrate(w_dense, Ptr, par, Rwdw, Gr_Re_w_KK, tol, lims);
 		Gr_Re_w_KK=Gr_Re_w_KK/PI;
 	}
+	
+	if (w_out(0)!=w_dense(0) || w_out(Nw_out-1)!=w_dense(Nw_dense-1) || Nw_out==Nw_dense)
+	{
+		coeffs.zeros(4*(Nw_dense-1));
+		spline_coeffs_rel(w_dense.memptr(), A_dense.memptr(), Nw_dense, coeffs.memptr());
+		vec A_out;
+		spline_val(w_out, w_dense, coeffs, A_out);
+		Gi_Re_w=-A_out/2;
+		if (boson) Gi_Re_w=w_out%Gi_Re_w;
+		
+		coeffs.zeros();
+		coeffs(0)=dG_w(0);
+		coeffs(1)=dG_w(1);
+		spline_coeffs_rel(w_dense.memptr(), Gr_Re_w.memptr(), Nw_dense, coeffs.memptr());
+		spline_val(w_out, w_dense, coeffs, Gr_Re_w);
+	}
+	
+	if (Ginf_finite)
+	{
+		Gr_Re_w=Gr_Re_w+G_omega_inf;
+	}
+	
+	M_save.zeros(Nw_out,3);
+	M_save.col(0)=w_out;
+	M_save.col(1)=Gr_Re_w;
+	M_save.col(2)=Gi_Re_w;
+	
+	file_name_str=output_dir_fin;
+	file_name_str+=G_re_omega_name;
+	remove(file_name_str.c_str());
+	M_save.save(file_name_str,raw_ascii);
 	
 /*
 	vec Atmp=-Gi_Re_w/PI;
@@ -3557,12 +3759,72 @@ void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 
 void OmegaMaxEnt_data::set_output_frequency_grid(vec extr_w)
 {
-	R_dw_min_dw_dense=5;
-	
-	double w_dense_min, w_dense_max, dw_dense, w_range;
+	double w_dense_min, w_dense_max, dw_dense, w_range, w_out_min, w_out_max, dw_out;
 	vec Dw=w.rows(1,Nw-1)-w.rows(0,Nw-2);
 	double dw_min=Dw.min()/R_dw_min_dw_dense;
 	
+	dw_dense=dw_min;
+	w_range=R_SW_G_Re_w_range*SW;
+	double log2_Nw_dense=ceil(log2(w_range/dw_dense));
+	int Nw_p=pow(2,log2_Nw_dense-1);
+	vec w_dense_p=linspace<vec>(0,Nw_p,Nw_p+1)*dw_dense;
+	vec w_dense_m=-linspace<vec>(1,Nw_p,Nw_p)*dw_dense;
+	w_dense=join_vert(flipud(w_dense_m),w_dense_p);
+	Nw_dense=2*Nw_p+1;
+	w_dense_min=w_dense(0);
+	w_dense_max=w_dense(Nw_dense-1);
+	w_range=w_dense_max-w_dense_min;
+	
+	while (w_dense_min<extr_w(0) || w_dense_max>extr_w(1))
+	{
+		Nw_p=Nw_p/2;
+		w_dense_p=w_dense_p.rows(0,Nw_p);
+		w_dense_m=w_dense_m.rows(0,Nw_p-1);
+		w_dense=join_vert(flipud(w_dense_m),w_dense_p);
+		Nw_dense=2*Nw_p+1;
+		w_dense_min=w_dense(0);
+		w_dense_max=w_dense(Nw_dense-1);
+		w_range=w_dense_max-w_dense_min;
+	}
+	
+	if (output_grid_params_in.size() && output_grid_params(0)<0 && output_grid_params(2)>0 && output_grid_params(0)>extr_w(0) && output_grid_params(2)<extr_w(1))
+	{
+		w_out_min=output_grid_params(0);
+		w_out_max=output_grid_params(2);
+		dw_out=output_grid_params(1);
+		
+		w_range=w_out_max-w_out_min;
+		if (dw_out>Dw.min())
+		{
+			cout<<"set_output_frequency_grid() warning: output frequency step might be too large to resolve the spectrum well.\n";
+		}
+		
+		Nw_out=(int)round(w_range/dw_out)+1;
+		w_out=linspace<vec>(0,Nw_out-1,Nw_out)*dw_out+w_out_min;
+		
+	/*
+		int Nw_m;
+		Nw_p=(int)floor(w_out_max/dw_out)+1;
+		Nw_m=(int)floor(fabs(w_out_min)/dw_out);
+		
+		vec w_out_p=linspace<vec>(0,Nw_p-1,Nw_p)*dw_out;
+		vec w_out_m=-linspace<vec>(1,Nw_m,Nw_m)*dw_out;
+		w_out=join_vert(flipud(w_dense_m),w_dense_p);
+		Nw_out=Nw_p+Nw_m;
+	 */
+	}
+	else
+	{
+		w_out=w_dense;
+		Nw_out=Nw_dense;
+	}
+	
+	cout<<"number of points in the output real frequency grid: "<<Nw_out<<endl;
+	cout<<"frequency step of the output grid: "<<w_out(1)-w_out(0)<<endl;
+	cout<<"minimum frequency of the output grid: "<<w_out(0)<<endl;
+	cout<<"maximum frequency of the output grid: "<<w_out(Nw_out-1)<<endl;
+	
+/*
 	if (output_grid_params_in.size() && output_grid_params(0)<0 && output_grid_params(2)>0 && output_grid_params(0)>extr_w(0) && output_grid_params(2)<extr_w(1))
 	{
 		w_dense_min=output_grid_params(0);
@@ -3572,8 +3834,8 @@ void OmegaMaxEnt_data::set_output_frequency_grid(vec extr_w)
 		w_range=w_dense_max-w_dense_min;
 		if (dw_dense>2*dw_min)
 		{
-			cout<<"compute_Re_G_omega(): invalid output frequency step. Setting it to minimum step in the grid.\n";
-			dw_dense=dw_min;
+			cout<<"compute_Re_G_omega() warning: output frequency step might be too large to resolve the spectrum well.\n";
+		//	dw_dense=dw_min;
 		}
 		
 		int Nw_p, Nw_m;
@@ -3609,8 +3871,8 @@ void OmegaMaxEnt_data::set_output_frequency_grid(vec extr_w)
 		while (w_dense_min<extr_w(0) || w_dense_max>extr_w(1))
 		{
 			Nw_p=Nw_p/2;
-			w_dense_p=w_dense_p(0,Nw_p);
-			w_dense_m=w_dense_m(0,Nw_p-1);
+			w_dense_p=w_dense_p.rows(0,Nw_p);
+			w_dense_m=w_dense_m.rows(0,Nw_p-1);
 			w_dense=join_vert(flipud(w_dense_m),w_dense_p);
 			Nw_dense=2*Nw_p+1;
 			w_dense_min=w_dense(0);
@@ -3618,11 +3880,12 @@ void OmegaMaxEnt_data::set_output_frequency_grid(vec extr_w)
 			w_range=w_dense_max-w_dense_min;
 		}
 	}
+*/
 	
-	cout<<"number of points in the output real frequency grid: "<<Nw_dense<<endl;
-	cout<<"frequency step of the output real frequency grid: "<<dw_dense<<endl;
-	cout<<"minimum frequency of the output real frequency grid: "<<w_dense_min<<endl;
-	cout<<"maximum frequency of the output real frequency grid: "<<w_dense_max<<endl;
+//	cout<<"number of points in the output real frequency grid: "<<Nw_dense<<endl;
+//	cout<<"frequency step of the output real frequency grid: "<<dw_dense<<endl;
+//	cout<<"minimum frequency of the output real frequency grid: "<<w_dense_min<<endl;
+//	cout<<"maximum frequency of the output real frequency grid: "<<w_dense_max<<endl;
 }
 
 void OmegaMaxEnt_data::compute_G_Re_omega_from_A_t(vec t, cx_vec At, cx_vec &G_Re_omega)
@@ -3673,7 +3936,16 @@ void OmegaMaxEnt_data::compute_G_Re_omega_from_A_t(vec t, cx_vec At, cx_vec &G_R
 	
 	G_Re_omega.zeros(Nw_dense);
 	
-	G_Re_omega=M0/wG+M1/pow(wG,2)+(exp(I*wG*2.0*PI/dw)*d2Atmax-d2At0)/pow(wG,3)+I*TF_d3At%(exp(I*wG*dt)-1.0)/pow(wG,4);
+	G_Re_omega=At(0)/wG+M1/pow(wG,2)+(exp(I*wG*2.0*PI/dw)*d2Atmax-d2At0)/pow(wG,3)+I*TF_d3At%(exp(I*wG*dt)-1.0)/pow(wG,4);
+	
+	dG_w.zeros(2);
+	
+	dG_w(0)=-real(At(0))/pow(wG(0),2)-2*M1/pow(wG(0),3)-3*real(exp(I*wG(0)*2.0*PI/dw)*d2Atmax-d2At0)/pow(wG(0),4);
+	dG_w(1)=-real(At(0))/pow(wG(Nw_dense-1),2)-2*M1/pow(wG(Nw_dense-1),3)-3*real(exp(I*wG(Nw_dense-1)*2.0*PI/dw)*d2Atmax-d2At0)/pow(wG(Nw_dense-1),4);
+	
+//	double dw_dense=w_dense(1)-w_dense(0);
+//	cout<<"dG_w(0): "<<setw(20)<<dG_w(0)<<real(G_Re_omega(1)-G_Re_omega(0))/dw_dense<<endl;
+//	cout<<"dG_w(1): "<<setw(20)<<dG_w(1)<<real(G_Re_omega(Nw_dense-1)-G_Re_omega(Nw_dense-2))/dw_dense<<endl;
 	
 	wG(jw0)=w_dense(jw0);
 	
@@ -3855,8 +4127,21 @@ void OmegaMaxEnt_data::Fourier_transform_spectrum(vec wFt, vec AwFt, vec &t, cx_
 	double d2A_wmax=6*coeffs(4*N_interv-4)*dwFt+2*coeffs(4*N_interv-3);
 	
 	At=-I*(d2A_wmax*exp(-I*t*wFt(N_interv))-d2A_wmin*exp(-I*t*wFt(0)))/(2*PI*pow(t,3)) - TF_d3Aw/(2*PI*pow(t,4));
-	At(0)=M0;
+//	At(0)=M0;
 	t(0)=0;
+	
+	At(0)=0;
+	double a,b,c,d;
+	for (int m=0; m<N_interv; m++)
+	{
+		a=coeffs(4*m);
+		b=coeffs(4*m+1);
+		c=coeffs(4*m+2);
+		d=coeffs(4*m+3);
+		At(0)+=a*pow(dwFt,4)/4+b*pow(dwFt,3)/3+c*pow(dwFt,2)/2+d*dwFt;
+	}
+	
+	At(0)=At(0)/(2*PI);
 	
 	int Nt=t.n_rows+1;
 	t.resize(Nt);
@@ -5499,34 +5784,6 @@ bool OmegaMaxEnt_data::set_wc_chi()
 	
 	double dw_min;
 	
-/*
-	if (!step_omega_in.size() && non_uniform_grid && peak_exists)
-	{
-		double dw_default=0;
-		
-		dw_min=2*dw_peak/R_peak_width_dw;
-		
-		if (SW_set)
-		{
-			dw_default=SW/(f_SW_std_omega*Rmin_SW_dw);
-		}
-		else if (std_omega)
-		{
-			dw_default=std_omega/Rmin_SW_dw;
-		}
-		else if (main_spectral_region_set)
-		{
-			dw_default=2*wr/(f_SW_std_omega*Rmin_SW_dw);
-		}
-		else if (jfit)
-		{
-			dw_default=2*wn(jfit)/(R_wncutoff_wr*f_SW_std_omega*Rmin_SW_dw);
-		}
-		
-		if (dw_min<dw_default) use_nu_grid=true;
-	}
-*/
-	
 	if (non_uniform_grid && step_omega_in.size())
 	{
 		dw_min=step_omega;
@@ -6783,14 +7040,28 @@ bool OmegaMaxEnt_data::compute_moments_tau_bosons()
 	
 	int Nfitmax=ceil(FNfitTauW*Ntau*tem/(abs(M0_NP_tmp/M1n)+Wtmp));
 	if (Nfitmax>Ntau/2) Nfitmax=Ntau/2;
-	
 	if (Nfitmax>Nfitmax_max) Nfitmax=Nfitmax_max;
 	
-//	cout<<"Nfitmax: "<<Nfitmax<<endl;
+	mat X;
+	int p;
+	
+	Nfit=Nfitmax;
+	np=Nfit-1;
+	X.zeros(Nfit,np+1);
+	for (p=0; p<=np; p++)
+		X.col(p)=pow(tau.rows(0,Nfit-1),p);
+	
+	mat U, V;
+	vec sK;
+	svd(U,sK,V,X,"std");
+	
+	p=0;
+	while (p<=np && sK(p)/sK(0)>R_sv_min) p++;
+	Nfitmax=p;
 	
 	double M0_N, M1_N, M2_N, M3_N;
 	
-	mat X, CG, invCG, AM;
+	mat CG, invCG, AM;
 	vec Gchi2tmp, BM, Mtmp;
 	npmin=3;
 	int Nfitmin=npmin+1;
@@ -6798,7 +7069,7 @@ bool OmegaMaxEnt_data::compute_moments_tau_bosons()
 	
 	if (NNfit<5)
 	{
-		cout<<"compute_moments_tau_fermions(): imaginary time step is too small to extract the moments. Provide the first and second moments or use a smaller step.\n";
+		cout<<"compute_moments_tau_bosons(): unable to compute the moments from G(tau). The imaginary time step can be either too small or too large. You can either change the step, provide the first moment, or increase parameter R_sv_min in file \"OmegaMaxEnt_other_params.dat\".\n";
 		return false;
 	}
 	
@@ -6806,7 +7077,6 @@ bool OmegaMaxEnt_data::compute_moments_tau_bosons()
 	mat M1b=zeros<mat>(NNfit,NNfit);
 	mat M2b=zeros<mat>(NNfit,NNfit);
 	mat M3b=zeros<mat>(NNfit,NNfit);
-	int p;
 
 	//		char UPLO='U';
 	//		int NA, NRHS=1, INFO;
@@ -6822,7 +7092,6 @@ bool OmegaMaxEnt_data::compute_moments_tau_bosons()
 			
 			Gchi2tmp=Gtau.rows(0,Nfit-1)+flipud(Gtau.rows(Ntau-Nfit+1,Ntau));
 			CG=Ctau_all.submat(0,0,Nfit-1,Nfit-1)+fliplr(Ctau_all.submat(0,Ntau-Nfit+1,Nfit-1,Ntau))+flipud(Ctau_all.submat(Ntau-Nfit+1,0,Ntau,Nfit-1))+flipud(fliplr(Ctau_all.submat(Ntau-Nfit+1,Ntau-Nfit+1,Ntau,Ntau)));
-//			CG(0,0)=CG(1,1);
 			invCG=inv(CG);
 //			invCG=inv_sympd(CG);
 			AM=(X.t())*invCG*X;
@@ -7067,11 +7336,10 @@ bool OmegaMaxEnt_data::compute_moments_tau_bosons()
 	COVM.zeros(NM,NM);
 	COVM.diag()=square(errM);
 	
-	compute_dG_dtau();
+	dG_dtau_computed=compute_dG_dtau();
 	
 	return true;
 }
-
 
 bool OmegaMaxEnt_data::Kernel_G_bosons()
 {
@@ -8209,7 +8477,10 @@ bool OmegaMaxEnt_data::set_G_omega_n_bosons()
 	else
 		Gi.zeros(Nn);
 	
-	if (G_omega_inf_in.size()) Gr=Gr-G_omega_inf;
+	if (G_omega_inf_in.size())
+	{
+		Gr=Gr-G_omega_inf;
+	}
 	
 	indG_0=0, indG_f=Nn-1;
 	wn_sign_change=false;
@@ -8473,7 +8744,7 @@ bool OmegaMaxEnt_data::Fourier_transform_G_tau()
 	vec cfs_Gtau(4*Ntau);
 
 
-	if (Ntau<=Ntau_max_LC)
+	if (Ntau<=Ntau_max_LC || !dG_dtau_computed)
 	{
 		vec cfs_LC(4);
 		vec LC(2);
@@ -9235,10 +9506,27 @@ bool OmegaMaxEnt_data::compute_dG_dtau()
 	double Wtmp=std_omega;
 	
 	int Nfitmax=ceil(FNfitTauW*Ntau*tem/(abs(M1/M0)+Wtmp));
-	if (Nfitmax>Ntau) Nfitmax=Ntau;
+	if (Nfitmax>Ntau) Nfitmax=Ntau/2;
 	if (Nfitmax>Nfitmax_max) Nfitmax=Nfitmax_max;
 	
-	mat X, CG, invCG, AM;
+	mat X;
+	int p;
+	
+	Nfit=Nfitmax;
+	np=Nfit-1;
+	X.zeros(Nfit,np+1);
+	for (p=0; p<=np; p++)
+		X.col(p)=pow(tau.rows(0,Nfit-1),p);
+	
+	mat U, V;
+	vec sK;
+	svd(U,sK,V,X,"std");
+	
+	p=0;
+	while (p<=np && sK(p)/sK(0)>R_sv_min) p++;
+	Nfitmax=p;
+	
+	mat CG, invCG, AM;
 	vec Gchi2tmp, BM, Mtmp;
 	npmin=3;
 	int Nfitmin=npmin+1;
@@ -9246,7 +9534,7 @@ bool OmegaMaxEnt_data::compute_dG_dtau()
 	
 	if (NNfit<5)
 	{
-		cout<<"compute_dG_dtau(): imaginary time step is too small to determine dG/dtau.\n";
+		cout<<"compute_dG_dtau(): unable to determine dG/dtau. The imaginary time step can be either too small or too large. You can either change the step or increase parameter R_sv_min in file \"OmegaMaxEnt_other_params.dat\".\n";
 		return false;
 	}
 	
@@ -9258,7 +9546,7 @@ bool OmegaMaxEnt_data::compute_dG_dtau()
 	mat dGb=zeros<mat>(NNfit,NNfit);
 	mat d2Gb=zeros<mat>(NNfit,NNfit);
 	mat d3Gb=zeros<mat>(NNfit,NNfit);
-	int p;
+	
 	for (Nfit=Nfitmin; Nfit<=Nfitmax; Nfit++)
 	{
 		for (np=npmin; np<Nfit; np++)
@@ -9511,21 +9799,37 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	else
 		Wtmp=abs(M1_NP_tmp/M0_NP_tmp);
 	
-//	cout<<"Wtmp: "<<Wtmp<<endl;
-	
 	int Nfitmax=ceil(FNfitTauW*Ntau*tem/(abs(M1_NP_tmp/M0_NP_tmp)+Wtmp));
-	if (Nfitmax>Ntau) Nfitmax=Ntau;
+	if (Nfitmax>Ntau) Nfitmax=Ntau/2;
 	if (Nfitmax>Nfitmax_max) Nfitmax=Nfitmax_max;
-
-	mat X, CG, invCG, AM;
+	
+	mat X;
+	int p, pmax;
+	
+	Nfit=Nfitmax;
+	np=Nfit-1;
+	X.zeros(Nfit,np+1);
+	for (p=0; p<=np; p++)
+		X.col(p)=pow(tau.rows(0,Nfit-1),p);
+	
+	mat U, V;
+	vec sK;
+	svd(U,sK,V,X,"std");
+	
+	p=0;
+	while (p<=np && sK(p)/sK(0)>R_sv_min) p++;
+	Nfitmax=p;
+	
+	mat CG, invCG, AM;
 	vec Gchi2tmp, BM, Mtmp;
 	npmin=3;
 	int Nfitmin=npmin+1;
 	int NNfit=Nfitmax-Nfitmin+1;
+//	int Npfit=pow_max_tau-npmin+1;
 	
 	if (NNfit<5)
 	{
-		cout<<"compute_moments_tau_fermions(): imaginary time step is too small to extract the moments. Provide the first and second moments or use a smaller step.\n";
+		cout<<"compute_moments_tau_fermions(): unable to compute the moments from G(tau). The imaginary time step can be either too small or too large. You can either change the step, provide the first moment, or increase parameter R_sv_min in file \"OmegaMaxEnt_other_params.dat\".\n";
 		return false;
 	}
 	
@@ -9533,15 +9837,12 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 	mat M1b=zeros<mat>(NNfit,NNfit);
 	mat M2b=zeros<mat>(NNfit,NNfit);
 	mat M3b=zeros<mat>(NNfit,NNfit);
-	int p;
-	
-//	cout<<"Nfitmin: "<<Nfitmin<<endl;
-//	cout<<"Nfitmax: "<<Nfitmax<<endl;
-//	cout<<"NNfit: "<<NNfit<<endl;
 	
 	for (Nfit=Nfitmin; Nfit<=Nfitmax; Nfit++)
 	{
-		for (np=npmin; np<Nfit; np++)
+		pmax=Nfit-1;
+//		if (pmax>pow_max_tau) pmax=pow_max_tau;
+		for (np=npmin; np<=pmax; np++)
 		{
 			X=zeros<mat>(Nfit,np+1);
 			for (p=0; p<=np; p++)
@@ -9549,12 +9850,12 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 			
 			Gchi2tmp=Gtau.rows(0,Nfit-1)+flipud(Gtau.rows(Ntau-Nfit+1,Ntau));
 			CG=Ctau_all.submat(0,0,Nfit-1,Nfit-1)+fliplr(Ctau_all.submat(0,Ntau-Nfit+1,Nfit-1,Ntau))+flipud(Ctau_all.submat(Ntau-Nfit+1,0,Ntau,Nfit-1))+flipud(fliplr(Ctau_all.submat(Ntau-Nfit+1,Ntau-Nfit+1,Ntau,Ntau)));
-		//	CG(0,0)=CG(1,1);
 			invCG=inv(CG);
 			//	invCG=inv_sympd(CG);
 			AM=(X.t())*invCG*X;
 			BM=(X.t())*invCG*Gchi2tmp;
 			Mtmp=solve(AM,BM);
+		//	if (!solve(Mtmp,AM,BM))
 			M0b(Nfit-np-1,np-npmin)=-Mtmp(0);
 			M2b(Nfit-np-1,np-npmin)=-2*Mtmp(2);
 		 
@@ -9565,12 +9866,12 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 		 	AM=(X.t())*invCG*X;
 			BM=(X.t())*invCG*Gchi2tmp;
 			Mtmp=solve(AM,BM);
+		//	if (!solve(Mtmp,AM,BM))
 			M1b(Nfit-np-1,np-npmin)=Mtmp(1);
 			M3b(Nfit-np-1,np-npmin)=6*Mtmp(3);
- 
 		}
 	}
-
+	
 	Nv=1;
 	NvN=1;
 	int jmin=NvN;
@@ -9617,7 +9918,14 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 		varM3.submat(j,Nl-j,j,Nl-1)=2*varM3max*ones<rowvec>(j);
 	}
 	
-//	cout<<varM0<<endl;
+//	cout<<"M0b:\n"<<M0b<<endl;
+//	cout<<"varM0:\n"<<varM0<<endl;
+//	cout<<"M1b:\n"<<M1b<<endl;
+//	cout<<"varM1:\n"<<varM1<<endl;
+//	cout<<"M2b:\n"<<M2b<<endl;
+//	cout<<"varM2:\n"<<varM2<<endl;
+//	cout<<"M3b:\n"<<M3b<<endl;
+//	cout<<"varM3:\n"<<varM3<<endl;
 
 	varM0.min(jvmin,lvmin);
 	double M0_N=M0m(jvmin,lvmin);
@@ -9842,7 +10150,7 @@ bool OmegaMaxEnt_data::compute_moments_tau_fermions()
 		NM=2;
 	}
 	
-	compute_dG_dtau();
+	dG_dtau_computed=compute_dG_dtau();
 	
 	return true;
 }
@@ -10035,7 +10343,14 @@ bool OmegaMaxEnt_data::fit_circle_arc(vec x, vec y, vec &arc_params)
 	mat A=X.t()*X;
 	vec B=X.t()*y;
 	
-	vec cfs=solve(A,B);
+	vec cfs;
+	
+//	vec cfs=solve(A,B);
+	
+	if (!solve(cfs,A,B))
+	{
+		return true;
+	}
 	
 	int jmid=floor(N/2);
 	
@@ -10130,8 +10445,14 @@ bool OmegaMaxEnt_data::fit_circle_arc(vec x, vec y, vec &arc_params)
 	H(1,0)=D2chi2xcyc;
 	H(1,1)=D2chi2yc;
 	
-	vec p=solve(H,gradchi2);
-	
+	vec p;
+	if (!solve(p,H,gradchi2))
+	{
+		return true;
+//		cout<<"fit_circle_arc(): solve failed, using solve_LU.\n";
+//		p=solve_LU(H,gradchi2);
+	}
+//	vec p=solve(H,gradchi2);
 	
 	double xc_prec=xc;
 	double yc_prec=yc;
@@ -10183,7 +10504,12 @@ bool OmegaMaxEnt_data::fit_circle_arc(vec x, vec y, vec &arc_params)
 		H(1,0)=D2chi2xcyc;
 		H(1,1)=D2chi2yc;
 		
-		p=solve(H,gradchi2);
+	//	p=solve(H,gradchi2);
+		if (!solve(p,H,gradchi2))
+		{
+			j--;
+			break;
+		}
 		
 		xc_prec=xc;
 		yc_prec=yc;
@@ -10785,11 +11111,12 @@ double OmegaMaxEnt_data::S_i(double u, double c[])
 
 void OmegaMaxEnt_data::minimize()
 {
+	double tol_int_dA2=1e-3;
 	char alpha_output[100], file_name[200];
 	char alpha_output_format[]="%d \t alpha: % 1.4e,  Q: % 1.4e,  S: % 1.4e,  chi2: % 1.4e\n";
 	double mean_int_dA_prec, mean_int_dA_prec2, A1min, chi2prec, Q, S;
 	mat chi2, P, KGMj, U, V, mean_int_dA, M_save;
-	vec A1, AS, c1, c2, grS, B, B2, Pd, sK, sK2(NwA), D1, dA1, VPdA, dA_rel, DG;
+	vec A1, A1_prec, AS, c1, c2, grS, B, B2, Pd, sK, sK2(NwA), D1, dA1, dA1_prec, VPdA, dA_rel, DG;
 	vec G_out, G_V_out, errIm, errRe, M_out, M_V_out, eigv_ind;
 	uvec ind_c2_sat, ind_An, ind_Anul;
 	int i, ind_alpha, iter_dA;
@@ -10847,11 +11174,12 @@ void OmegaMaxEnt_data::minimize()
 	DG=GM-KGM*A;
 	chi2=DG.t()*DG;
 	
-	double shift_l_P_alpha=322;
-	
 	SD=(exp(-1)*default_model.t()*dwS)/(2*PI);
 	
 	Dw=(exp(-1)*default_model%dwS)/(2*PI);
+	
+//	int iter_dA2;
+//	vec DGM, Atmp, mod2_B, mod2_B2;
 	
 	while (ind_alpha<=Nalpha && alpha>=alpha_min)
 	{
@@ -10865,6 +11193,10 @@ void OmegaMaxEnt_data::minimize()
 		{
 			grS.rows(ind_An)=2*c2.rows(ind_An) % (A1.rows(ind_An)-Achange.rows(ind_An))+c1.rows(ind_An);
 		}
+		
+//		DGM=GM-KGM*A1;
+//		S=(A1%dwS)%log(A1/default_model);
+//		Q=DGM.t()*DGM-(alpha/(4*PI))*S;
 		
 		B=KGM.t()*(GM-KGM*A1)-(alpha/(4*PI))*grS;
 		
@@ -10897,6 +11229,9 @@ void OmegaMaxEnt_data::minimize()
 		
 		iter_dA=1;
 		
+		A1_prec=A1;
+		dA1_prec=dA1;
+		
 		A1=A1+dA1;
 		
 		ind_Anul=find(A1==0);
@@ -10907,7 +11242,7 @@ void OmegaMaxEnt_data::minimize()
 		
 		A1min=min(A1-Amin);
 
-		while ( (mean_int_dA(0)>tol_int_dA || A1min<0) && iter_dA<Niter_dA_max && (mean_int_dA(0)<mean_int_dA_prec || mean_int_dA(0)<mean_int_dA_prec2))
+		while ( iter_dA<Niter_dA_max && (mean_int_dA(0)>tol_int_dA || A1min<0) && mean_int_dA(0)<mean_int_dA_prec) // (mean_int_dA(0)<mean_int_dA_prec || mean_int_dA(0)<mean_int_dA_prec2))
 		{
 			grS=dwS % log(A1/default_model) + dwS;
 			ind_An=find(A1/default_model<rADchange);
@@ -10940,16 +11275,53 @@ void OmegaMaxEnt_data::minimize()
 			D1=sK2+1;
 			VPdA=B2/D1;
 			dA1=P*(V*VPdA);
-			
+	 
+		/*
+			iter_dA2=0;
+			while (iter_dA2<Niter_dA_max && mean_int_dA(0)>mean_int_dA_prec)
+			{
+				dA1=dA1/2;
+				mean_int_dA=abs(dA1.t())*dwS;
+				iter_dA2++;
+			}
+		
+			Atmp=A1+dA1;
+			grS=dwS % log(Atmp/default_model) + dwS;
+			ind_An=find(Atmp/default_model<rADchange);
+			if (ind_An.n_rows)
+			{
+				grS.rows(ind_An)=2*c2.rows(ind_An) % (Atmp.rows(ind_An)-Achange.rows(ind_An))+c1.rows(ind_An);
+			}
+			B2=KGM.t()*(GM-KGM*Atmp)-(alpha/(4*PI))*grS;
+			mod2_B2=B2.t()*B2;
+			if (mod2_B2<mod2_B)
+			{
+				A1=Atmp;
+				A1min=min(A1-Amin);
+				dA1_prec=dA1;
+			}
+		*/
+		
 			mean_int_dA_prec2=mean_int_dA_prec;
 			mean_int_dA_prec=mean_int_dA(0);
 			mean_int_dA=abs(dA1.t())*dwS;
 			
 			if (mean_int_dA(0)<mean_int_dA_prec)
 			{
+				A1_prec=A1;
+				dA1_prec=dA1;
 				A1=A1+dA1;
 				A1min=min(A1-Amin);
 			}
+		/*
+			else if (mean_int_dA(0)<mean_int_dA_prec2)
+			{
+				A1=A1_prec+dA1_prec/2;
+				dA1_prec=dA1_prec/2;
+				A1min=min(A1-Amin);
+				mean_int_dA=abs(dA1_prec.t())*dwS;
+			}
+		*/
 			
 			ind_Anul=find(A1==0);
 			if (ind_Anul.n_rows)
@@ -10961,10 +11333,16 @@ void OmegaMaxEnt_data::minimize()
 			iter_dA++;
 		}
 
+		if (mean_int_dA(0)>tol_int_dA2)
+		{
+			cout<<"Integrated absolute variation in A is too large. Stopping minimization.\n";
+			ind_alpha=Nalpha+1;
+		}
+		
 /*
 		if (mean_int_dA(0)>mean_int_dA_prec || iter_dA==Niter_dA_max)
 		{
-			cout<<"alpha= "<<alpha<<"  iteration: "<<iter_dA<<"  integrated absolute variation in A:   "<<setw(20)<<mean_int_dA_prec2<<setw(20)<<mean_int_dA_prec<<mean_int_dA(0)<<endl;
+			cout<<"alpha= "<<alpha<<"  iteration: "<<iter_dA<<"  integrated absolute variation in A: "<<setw(20)<<mean_int_dA_prec2<<setw(20)<<mean_int_dA_prec<<mean_int_dA(0)<<endl;
 		}
 */
 		chi2prec=chi2(0);
@@ -11280,6 +11658,7 @@ void OmegaMaxEnt_data::minimize()
 					{
 						alpha_too_small=true;
 						cout<<"warning: minimum value of alpha seems too small.\n";
+						cout<<"alpha= "<<alpha<<endl;
 					}
 				}
 			}
@@ -11362,7 +11741,6 @@ void OmegaMaxEnt_data::minimize_increase_alpha()
 	double xc, yc, x1, y1;
 	
 	c1=(log(rADchange)+1)*dwS;
-	//vec c2_0=-fc2*c1/(2*exp(-1)*default_model);
 	vec c2_alpha=2*PI*alpha_c2_max*ones<vec>(NwA);
 	
 	ind_alpha=1;
@@ -12913,6 +13291,208 @@ bool OmegaMaxEnt_data::Kernel_G_fermions_grid_transf_2()
 	return true;
 }
 
+bool OmegaMaxEnt_data::Kernel_G_fermions_Riemann_integ()
+{
+//	cout<<"defining kernel matrix...\n";
+	
+	int i,j;
+	
+	Kcx.zeros(Nn,Nw);
+	
+	int jl=Nw_lims(0);
+	int jr=Nw_lims(1);
+	
+	vec Dwc=0.5*(w.rows(jl+1,jr+1)-w.rows(jl-1,jr-1));
+	
+	cx_mat KC(Nn,Nwc);
+	
+	for (i=0; i<Nn; i++)
+	{
+		for (j=0; j<Nwc; j++)
+		{
+			KC(i,j)=Dwc(j)/(2*PI*(dcomplex(0,wn(i))-wc(j)));
+		}
+	}
+	
+	int Nug=Nw_lims(0);
+	int Nud=Nw-Nw_lims(1)-1;
+	
+	double dug,dud;
+	
+	vec ug, ud;
+	if (Du_constant)
+	{
+		dug=dwl/((wl-dwl-w0l)*(wl-w0l));
+		vec ug_int=linspace<vec>(1,Nug,Nug);
+		ug=-dug*ug_int;
+		vec dul=dug*ones<vec>(Nug);
+		
+		dud=dwr/((wr-w0r)*(wr+dwr-w0r));
+		vec ud_int=linspace<vec>(Nud,1,Nud);
+		ud=dud*ud_int;
+		vec dur=dud*ones<vec>(Nud);
+	}
+	else
+	{
+		cout<<"Kernel_G_fermions_Riemann_integ(): this kernel can be defined only for uniform u=1/(w-w0)\n";
+		return false;
+//		ug=1.0/(w.rows(0,Nug-1)-w0l);
+//		ud=1.0/(w.rows(Nw_lims(1)+1,Nw-1)-w0r);
+	}
+	
+	cx_mat KG(Nn,Nug);
+	cx_mat KD(Nn,Nud);
+	
+	for (i=0; i<Nn; i++)
+	{
+		for (j=0; j<Nug; j++)
+		{
+			KG(i,j)=dug/(2*PI*((dcomplex(0,wn(i))-w0l)*ug(j)*ug(j)-ug(j)));
+		}
+		for (j=0; j<Nud; j++)
+		{
+			KD(i,j)=dud/(2*PI*((dcomplex(0,wn(i))-w0r)*ud(j)*ud(j)-ud(j)));
+		}
+	}
+	
+	Kcx=join_rows(KG,KC);
+	Kcx=join_rows(Kcx,KD);
+	
+	K.zeros(2*Nn,Nw);
+	uvec even_ind=linspace<uvec>(0,2*Nn-2,Nn);
+	K.rows(even_ind)=real(Kcx);
+	K.rows(even_ind+1)=imag(Kcx);
+	
+	rowvec KM0g(Nug);
+	rowvec KM1g(Nug);
+	rowvec KM2g(Nug);
+	rowvec KM3g(Nug);
+	rowvec KM0c(Nwc);
+	rowvec KM1c(Nwc);
+	rowvec KM2c(Nwc);
+	rowvec KM3c(Nwc);
+	rowvec KM0d(Nud);
+	rowvec KM1d(Nud);
+	rowvec KM2d(Nud);
+	rowvec KM3d(Nud);
+	
+	for (i=0; i<Nug; i++)
+	{
+		KM0g(i)=dug*(w(i)-w0l)*(w(i)-w0l)/(2*PI);
+		KM1g(i)=dug*(w(i)-w0l)*(w(i)-w0l)*w(i)/(2*PI);
+		KM2g(i)=dug*(w(i)-w0l)*(w(i)-w0l)*w(i)*w(i)/(2*PI);
+		KM3g(i)=dug*(w(i)-w0l)*(w(i)-w0l)*w(i)*w(i)*w(i)/(2*PI);
+	}
+	for (i=0; i<Nwc; i++)
+	{
+		KM0c(i)=Dwc(i)/(2*PI);
+		KM1c(i)=Dwc(i)*wc(i)/(2*PI);
+		KM2c(i)=Dwc(i)*wc(i)*wc(i)/(2*PI);
+		KM3c(i)=Dwc(i)*wc(i)*wc(i)*wc(i)/(2*PI);
+	}
+	vec wd=w.rows(Nw_lims(1)+1,Nw-1);
+	for (i=0; i<Nud; i++)
+	{
+		KM0d(i)=dud*(wd(i)-w0r)*(wd(i)-w0r)/(2*PI);
+		KM1d(i)=dud*(wd(i)-w0r)*(wd(i)-w0r)*wd(i)/(2*PI);
+		KM2d(i)=dud*(wd(i)-w0r)*(wd(i)-w0r)*wd(i)*wd(i)/(2*PI);
+		KM3d(i)=dud*(wd(i)-w0r)*(wd(i)-w0r)*wd(i)*wd(i)*wd(i)/(2*PI);
+	}
+	
+	rowvec KM0=join_rows(KM0g,KM0c);
+	KM0=join_rows(KM0,KM0d);
+	rowvec KM1=join_rows(KM1g,KM1c);
+	KM1=join_rows(KM1,KM1d);
+	rowvec KM2=join_rows(KM2g,KM2c);
+	KM2=join_rows(KM2,KM2d);
+	rowvec KM3=join_rows(KM3g,KM3c);
+	KM3=join_rows(KM3,KM3d);
+	
+	KM.zeros(4,Nw);
+	
+	KM.row(0)=KM0;
+	KM.row(1)=KM1;
+	KM.row(2)=KM2;
+	KM.row(3)=KM3;
+	
+	
+/*
+	 //test the kernel matrix and the moments vector
+	ifstream file("peaks.dat");
+	mat peaks_data;
+	
+	peaks_data.load(file);
+	int Npeaks=peaks_data.n_rows;
+	
+	rowvec x0, s0, wgt;
+	
+	x0=trans(peaks_data.col(0));
+	s0=trans(peaks_data.col(1));
+	wgt=trans(peaks_data.col(2));
+	
+	vec test_A;
+	sum_gaussians(w, x0, s0, wgt, test_A);
+	
+	cout<<KM*test_A<<endl;
+	
+	 vec Gtest1=K*test_A;
+	 vec Gr_test1=Gtest1.rows(even_ind);
+	 vec Gi_test1=Gtest1.rows(even_ind+1);
+	 cx_vec Gtest=Kcx*test_A;
+	 vec Gr_test=real(Gtest);
+	 vec Gi_test=imag(Gtest);
+	 
+	 graph_2D g1, g2, g3, g4, g5, g6;
+	 char attr1[]="'o',color='b',markeredgecolor='b',markerfacecolor='none'";
+	 char attr2[]="'s',color='r',markeredgecolor='r',markerfacecolor='none'";
+	 char attr3[]="'.-',color='m'";
+	 char attr4[]="'.-',color='c'";
+	 
+	 g1.add_data(wn.memptr(), Gr.memptr(), Nn);
+	 g1.add_attribute(attr1);
+	 g1.add_data(wn.memptr(), Gr_test.memptr(), Nn);
+	 g1.add_attribute(attr2);
+	g1.add_title("Gr et Gr_test");
+	 g1.curve_plot();
+	 
+	 g2.add_data(wn.memptr(), Gi.memptr(), Nn);
+	 g2.add_attribute(attr1);
+	 g2.add_data(wn.memptr(), Gi_test.memptr(), Nn);
+	 g2.add_attribute(attr2);
+	g2.add_title("Gi et Gi_test");
+	 g2.curve_plot();
+	 
+	 vec DGr1=(Gr_test-Gr)/Gr, DGr=(Gr_test-Gr_test1);
+	 vec DGi1=(Gi_test-Gi)/Gi, DGi=(Gi_test-Gi_test1);
+	
+	g3.add_data(wn.memptr(),DGr1.memptr(),Nn);
+	 g3.add_attribute(attr3);
+	g3.add_title("DGr1");
+	 g3.curve_plot();
+	 
+	 g4.add_data(wn.memptr(),DGr.memptr(),Nn);
+	 g4.add_attribute(attr3);
+	g4.add_title("DGr");
+	 g4.curve_plot();
+	 
+	 g5.add_data(wn.memptr(),DGi1.memptr(),Nn);
+	 g5.add_attribute(attr4);
+	g5.add_title("DGi1");
+	 g5.curve_plot();
+	 
+	 g6.add_data(wn.memptr(),DGi.memptr(),Nn);
+	 g6.add_attribute(attr4);
+	g6.add_title("DGi");
+	 g6.curve_plot();
+	 
+	 graph_2D::show_figures();
+*/
+	
+//	cout<<"kernel matrix defined.\n";
+	
+	return true;
+}
+
 bool OmegaMaxEnt_data::Kernel_G_fermions_grid_transf()
 {
 	bool use_HF_exp=true;
@@ -13139,6 +13719,8 @@ bool OmegaMaxEnt_data::Kernel_G_fermions_grid_transf()
 	
 	dcomplex i(0,1);
 	
+//	cout<<"left side\n";
+	
 	mat atang=atan((Wng % (Ug.cols(1,Nintg)-Ug.cols(0,Nintg-1)))/(1+w0l*(Ug.cols(1,Nintg)+Ug.cols(0,Nintg-1))+(pow(w0l,2)+pow(Wng,2)) % Ug.cols(0,Nintg-1) % Ug.cols(1,Nintg)));
 	mat logg=log((1.0+2*w0l*Ug.cols(1,Nintg)+pow(Ug.cols(1,Nintg),2) % (pow(Wng,2)+pow(w0l,2)))/(1.0+2*w0l*Ug.cols(0,Nintg-1)+pow(Ug.cols(0,Nintg-1),2) % (pow(Wng,2)+pow(w0l,2))));
 	
@@ -13194,6 +13776,8 @@ bool OmegaMaxEnt_data::Kernel_G_fermions_grid_transf()
 	
 	mat Wnc=wn*ones<rowvec>(Nintc);
 	mat Wc=ones<vec>(Nn)*wc.t();
+	
+//	cout<<"center\n";
 	
 	mat logc=log((pow(Wnc,2)+pow(Wc.cols(1,Nintc),2))/(pow(Wnc,2)+pow(Wc.cols(0,Nintc-1),2)));
 	mat atanc2=atan((Wnc % (Wc.cols(1,Nintc)-Wc.cols(0,Nintc-1)))/(Wc.cols(1,Nintc) % Wc.cols(0,Nintc-1)+pow(Wnc,2)));
@@ -13299,6 +13883,8 @@ bool OmegaMaxEnt_data::Kernel_G_fermions_grid_transf()
 	
 	mat Wnd=wn*ones<rowvec>(Nintd);
 	mat Ud=ones<vec>(Nn)*ud2;
+	
+//	cout<<"right side\n";
 	
 	mat atand=atan((Wnd % (Ud.cols(1,Nintd)-Ud.cols(0,Nintd-1)))/(1.0+w0r*(Ud.cols(1,Nintd)+Ud.cols(0,Nintd-1))+(pow(w0r,2)+pow(Wnd,2)) % Ud.cols(0,Nintd-1) % Ud.cols(1,Nintd)));
 	mat logd=log((1+2*w0r*Ud.cols(1,Nintd)+pow(Ud.cols(1,Nintd),2) % (pow(Wnd,2)+pow(w0r,2)))/(1+2*w0r*Ud.cols(0,Nintd-1)+pow(Ud.cols(0,Nintd-1),2) % (pow(Wnd,2)+pow(w0r,2))));
@@ -13416,6 +14002,7 @@ bool OmegaMaxEnt_data::Kernel_G_fermions_grid_transf()
 	graph_2D::show_figures();
 	*/
 	
+//	cout<<"moments\n";
 
 	rowvec Knorm_a_g=zeros<rowvec>(Nintg);
 	rowvec Knorm_b_g=zeros<rowvec>(Nintg);
@@ -15610,6 +16197,21 @@ bool OmegaMaxEnt_data::spline_matrix_grid_transf_G_part_2(vec x, uvec ind_xlims,
 	return true;
 }
 
+void OmegaMaxEnt_data::convert_matrix_to_band_format(mat M, mat &Mbf, int KL, int KU)
+{
+	int N=M.n_rows;
+	int ind_d;
+	
+	for (ind_d=KU; ind_d>=0; ind_d--)
+	{
+		Mbf.submat(KL+KU-ind_d,ind_d,KL+KU-ind_d,N-1)=trans(M.diag(ind_d));
+	}
+	for (ind_d=-1; ind_d>=-KL; ind_d--)
+	{
+		Mbf.submat(KL+KU-ind_d,0,KL+KU-ind_d,N+ind_d-1)=trans(M.diag(ind_d));
+	}
+}
+
 bool OmegaMaxEnt_data::spline_matrix_grid_transf_G_part(vec x, uvec ind_xlims, vec xs, mat &M)
 {
 	int Nx=x.n_rows;
@@ -15691,6 +16293,25 @@ bool OmegaMaxEnt_data::spline_matrix_grid_transf_G_part(vec x, uvec ind_xlims, v
 	Pg(4*j+3,NCg+j)=1;
 	
 	mat IB=eye(NCg,NCg);
+	
+/*
+	int N=NCg;
+	int INFO;
+	int *IPIV=new int[N];
+	int KD=3;
+	
+	mat invB=IB;
+	int Nbf=3*KD+1;
+	mat Bbf(Nbf,N);
+	convert_matrix_to_band_format(B, Bbf, KD, KD);
+
+	dgbsv_(&N, &KD, &KD, &N, Bbf.memptr(), &Nbf, IPIV, invB.memptr(), &N, &INFO );
+	
+	delete [] IPIV;
+*/
+	
+//	mat invB2=solve(B,IB);
+//	cout<<"max(|invB-invB2|): "<<max(max(abs(invB-invB2)))<<endl;
 	mat invB=solve(B,IB);
 	
 	mat IA=eye(Nx,Nx);
@@ -15773,6 +16394,20 @@ bool OmegaMaxEnt_data::spline_matrix_grid_transf_G_part(vec x, uvec ind_xlims, v
 	Pg(4*j+3,NCc+j+1)=1;
 	
 	IB.eye(NCc,NCc);
+/*
+	N=NCc;
+	IPIV=new int[N];
+	invB=IB;
+	
+	Bbf.zeros(Nbf,N);
+	convert_matrix_to_band_format(B, Bbf, KD, KD);
+	
+	dgbsv_(&N, &KD, &KD, &N, Bbf.memptr(), &Nbf, IPIV, invB.memptr(), &N, &INFO );
+	
+	delete [] IPIV;
+*/
+//	mat invB2=solve(B,IB);
+//	cout<<"max(|invB-invB2|): "<<max(max(abs(invB-invB2)))<<endl;
 	invB=solve(B,IB);
 	
 	PA=IA.submat(Ng-1,0,ind_xlims(1)-1,Nx-1);
@@ -15854,6 +16489,20 @@ bool OmegaMaxEnt_data::spline_matrix_grid_transf_G_part(vec x, uvec ind_xlims, v
 	Pg(4*j+3,NCd+j)=1;
 	
 	IB.eye(NCd,NCd);
+/*
+	N=NCd;
+	IPIV=new int[N];
+	invB=IB;
+	
+	Bbf.zeros(Nbf,N);
+	convert_matrix_to_band_format(B, Bbf, KD, KD);
+	
+	dgbsv_(&N, &KD, &KD, &N, Bbf.memptr(), &Nbf, IPIV, invB.memptr(), &N, &INFO );
+	
+	delete [] IPIV;
+*/
+//	mat invB2=solve(B,IB);
+//	cout<<"max(|invB-invB2|): "<<max(max(abs(invB-invB2)))<<endl;
 	invB=solve(B,IB);
 	
 	PA=IA.submat(ind_xlims(1)+1,0,Nx-1,Nx-1);
@@ -17183,33 +17832,7 @@ bool OmegaMaxEnt_data::set_wc()
 	
 	double dw_min;
 
-/*
-	if (!step_omega_in.size() && non_uniform_grid && peak_exists)
-	{
-		double dw_default=0;
-		
-		dw_min=2*dw_peak/R_peak_width_dw;
-		
-		if (SW_set)
-		{
-			dw_default=SW/(f_SW_std_omega*Rmin_SW_dw);
-		}
-		else if (std_omega)
-		{
-			dw_default=std_omega/Rmin_SW_dw;
-		}
-		else if (main_spectral_region_set)
-		{
-			dw_default=(wr-wl)/(f_SW_std_omega*Rmin_SW_dw);
-		}
-		else if (jfit)
-		{
-			dw_default=2*wn(jfit)/(R_wncutoff_wr*f_SW_std_omega*Rmin_SW_dw);
-		}
-		
-		if (dw_min<dw_default) use_nu_grid=true;
-	}
-*/
+
 	if (non_uniform_grid && step_omega_in.size())
 	{
 		dw_min=step_omega;
@@ -17223,7 +17846,6 @@ bool OmegaMaxEnt_data::set_wc()
 		use_nu_grid=true;
 	}
 	
-//	if (step_omega_in.size() || !non_uniform_grid || !peak_exists || !use_nu_grid)
 	if (!use_nu_grid)
 	{
 		cout<<"using uniform grid in main spectral range\n";
@@ -17248,6 +17870,14 @@ bool OmegaMaxEnt_data::set_wc()
 		{
 			SW=wr-wl;
 			SW_set=true;
+		}
+		else if (SW_set)
+		{
+			SC=0;
+			SC_set=true;
+			wr=SW/2;
+			wl=-SW/2;
+			main_spectral_region_set=true;
 		}
 		else
 		{
@@ -18928,6 +19558,53 @@ bool OmegaMaxEnt_data::compute_moments_omega_n_2()
 	cout<<"2nd moment extracted from high frequencies: "<<Mfit(2)<<endl;
 	cout<<"3rd moment extracted from high frequencies: "<<Mfit(3)<<endl;
 	
+	if (displ_prep_figs)
+	{
+		graph_2D g0, g1, g2; //, g3, g4;
+		
+		vec x=wn.rows(jfitmin-1,jfitmax-1);
+		
+		char xl[]="$\\\\omega_n$";
+		char yl0[]="$G_{inf}$";
+		char yl[]="$M_0$";
+		char yl2[]="$M_1$";
+		//	char yl3[]="$M_2$";
+		//	char yl4[]="$M_3$";
+		
+		plot(g0, x, Ginfv, xl, yl0);
+		plot(g1, x, M0v, xl, yl);
+		plot(g2, x, M1v, xl, yl2);
+		//	plot(g3, x, M2v, xl, yl3);
+		//	plot(g4, x, M3v, xl, yl4);
+		
+		if (graph_2D::display_figures) cout<<"close the figures to resume execution\n";
+		graph_2D::show_figures();
+	}
+	
+	if (displ_prep_figs)
+	{
+		graph_2D g3, g4;
+		//		graph_2D g0, g1, g2, g3, g4;
+		
+		vec x=wn.rows(jfitmin-1,jfitmax-1);
+		
+		char xl[]="$\\\\omega_n$";
+		//	char yl0[]="$G_{inf}$";
+		//	char yl[]="$M_0$";
+		//	char yl2[]="$M_1$";
+		char yl3[]="$M_2$";
+		char yl4[]="$M_3$";
+		
+		//	plot(g0, x, Ginfv, xl, yl0);
+		//	plot(g1, x, M0v, xl, yl);
+		//	plot(g2, x, M1v, xl, yl2);
+		plot(g3, x, M2v, xl, yl3);
+		plot(g4, x, M3v, xl, yl4);
+		
+		if (graph_2D::display_figures) cout<<"close the figures to resume execution\n";
+		graph_2D::show_figures();
+	}
+	
 	if (G_omega_inf_in.size())
 	{
 		if (G_omega_inf)
@@ -19215,6 +19892,7 @@ bool OmegaMaxEnt_data::compute_moments_omega_n_2()
 		if (!moments_provided && maxM>0) maxM=0;
 	}
 	
+/*
 	if (displ_prep_figs)
 	{
 		graph_2D g0, g1, g2; //, g3, g4;
@@ -19261,7 +19939,7 @@ bool OmegaMaxEnt_data::compute_moments_omega_n_2()
 		if (graph_2D::display_figures) cout<<"close the figures to resume execution\n";
 		graph_2D::show_figures();
 	}
-	
+	*/
 	return true;
 }
 
@@ -20355,6 +21033,9 @@ bool OmegaMaxEnt_data::set_covar_G_omega_n()
 
 bool OmegaMaxEnt_data::set_G_omega_n_fermions()
 {
+	bool allow_sign_change=true;
+	bool apply_sign_change=false;
+	
 	int j;
 	
 	signG=1;
@@ -20364,7 +21045,10 @@ bool OmegaMaxEnt_data::set_G_omega_n_fermions()
 	Gr=green_data.col(col_Gr-1);
 	Gi=green_data.col(col_Gi-1);
 	
-	if (G_omega_inf_in.size()) Gr=Gr-G_omega_inf;
+	if (G_omega_inf_in.size())
+	{
+		Gr=Gr-G_omega_inf;
+	}
 	
 	indG_0=0, indG_f=Nn-1;
 	wn_sign_change=false;
@@ -20404,10 +21088,14 @@ bool OmegaMaxEnt_data::set_G_omega_n_fermions()
 	}
 	if (Gi.max()*Gi.min()<0)
 	{
-		cout<<"error: Im[G] must not change sign\n";
-		return false;
+		if (allow_sign_change) cout<<"warning: change of sign in Im[G]\n";
+		else
+		{
+			cout<<"error: Im[G] must not change sign\n";
+			return false;
+		}
 	}
-	if (Gi.max()>0)
+	if (Gi.max()>0 && apply_sign_change)
 	{
 		signG=-1;
 	}
@@ -21293,6 +21981,43 @@ bool OmegaMaxEnt_data::load_input_params()
 				else
 					init_spectr_func_file.clear();
 			}
+			else if (str.compare(0,Preproc_comp_params[COMPUTE_PADE].size(),Preproc_comp_params[COMPUTE_PADE])==0)
+			{
+				str=str.substr(Preproc_comp_params[COMPUTE_PADE].size());
+				remove_spaces_ends(str);
+				if (compute_Pade_in.compare(str))	initialize=true;
+				compute_Pade_in=str;
+				compute_Pade=false;
+				if (compute_Pade_in.size())
+				{
+					cout<<Preproc_comp_params[COMPUTE_PADE]<<" "<<compute_Pade_in<<endl;
+					if (compute_Pade_in.compare("yes")==0) compute_Pade=true;
+				}
+			}
+			else if (str.compare(0,Preproc_comp_params[N_PADE].size(),Preproc_comp_params[N_PADE])==0)
+			{
+				str=str.substr(Preproc_comp_params[N_PADE].size());
+				remove_spaces_ends(str);
+				if (N_Pade_in.compare(str))	initialize=true;
+				N_Pade_in=str;
+				if (N_Pade_in.size())
+				{
+					cout<<Preproc_comp_params[N_PADE]<<" "<<N_Pade_in<<endl;
+					N_Pade=stoi(N_Pade_in);
+				}
+			}
+			else if (str.compare(0,Preproc_comp_params[ETA_PADE].size(),Preproc_comp_params[ETA_PADE])==0)
+			{
+				str=str.substr(Preproc_comp_params[ETA_PADE].size());
+				remove_spaces_ends(str);
+				if (eta_Pade_in.compare(str))	initialize=true;
+				eta_Pade_in=str;
+				if (eta_Pade_in.size())
+				{
+					cout<<Preproc_comp_params[ETA_PADE]<<" "<<eta_Pade_in<<endl;
+					eta_Pade=stod(eta_Pade_in);
+				}
+			}
 			else if (str.compare(0,Preproc_exec_params[PREPROSSESS_ONLY].size(),Preproc_exec_params[PREPROSSESS_ONLY])==0)
 			{
 				str=str.substr(Preproc_exec_params[PREPROSSESS_ONLY].size());
@@ -21561,7 +22286,6 @@ bool OmegaMaxEnt_data::load_input_params()
 	}
 	else
 	{
-		//		display_license();
 		cout<<"Input parameters file not found. Creating default one.\n";
 		create_default_input_params_file();
 		return false;
@@ -21890,21 +22614,6 @@ bool OmegaMaxEnt_data::load_other_params()
                 if (rc2H!=Other_params_fl_default_values[R_C2_H] || print_other_params)
                     cout<<Other_params_fl[R_C2_H]<<" "<<rc2H<<endl;
             }
-            else if (str.compare(0,Other_params_fl[F_C2].size(),Other_params_fl[F_C2])==0)
-            {
-                str=str.substr(Other_params_fl[F_C2].size());
-                fc2=stod(str);
-                if (fc2!=Other_params_fl_default_values[F_C2] || print_other_params)
-                    cout<<Other_params_fl[F_C2]<<" "<<fc2<<endl;
-            }
-			/*
-            else if (str.compare(0,Other_params_fl[F_CHI2_MIN].size(),Other_params_fl[F_CHI2_MIN])==0)
-            {
-                str=str.substr(Other_params_fl[F_CHI2_MIN].size());
-                f_chi2min=stod(str);
-                if (f_chi2min!=Other_params_fl_default_values[F_CHI2_MIN] || print_other_params)
-                    cout<<Other_params_fl[F_CHI2_MIN]<<" "<<f_chi2min<<endl;
-            }*/
             else if (str.compare(0,Other_params_fl[POW_ALPHA_STEP_INIT].size(),Other_params_fl[POW_ALPHA_STEP_INIT])==0)
             {
                 str=str.substr(Other_params_fl[POW_ALPHA_STEP_INIT].size());
@@ -22046,6 +22755,20 @@ bool OmegaMaxEnt_data::load_other_params()
 				R_dw_min_dw_dense=stod(str);
 				if (R_dw_min_dw_dense!=Other_params_fl_default_values[R_DW_MIN_DW_DENSE] || print_other_params)
 					cout<<Other_params_fl[R_DW_MIN_DW_DENSE]<<" "<<R_dw_min_dw_dense<<endl;
+			}
+			else if (str.compare(0,Other_params_fl[R_WKK_SW].size(),Other_params_fl[R_WKK_SW])==0)
+			{
+				str=str.substr(Other_params_fl[R_WKK_SW].size());
+				R_wKK_SW=stod(str);
+				if (R_wKK_SW!=Other_params_fl_default_values[R_WKK_SW] || print_other_params)
+					cout<<Other_params_fl[R_WKK_SW]<<" "<<R_wKK_SW<<endl;
+			}
+			else if (str.compare(0,Other_params_fl[R_SV_MIN].size(),Other_params_fl[R_SV_MIN])==0)
+			{
+				str=str.substr(Other_params_fl[R_SV_MIN].size());
+				R_sv_min=stod(str);
+				if (R_sv_min!=Other_params_fl_default_values[R_SV_MIN] || print_other_params)
+					cout<<Other_params_fl[R_SV_MIN]<<" "<<R_sv_min<<endl;
 			}
 			
             getline(file,str);
