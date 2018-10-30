@@ -53,7 +53,7 @@ time_str = "imaginary time data (yes/[no]):"
 temp_str = "temperature (in energy units, k_B=1):"
 grid_params_str = "output real frequency grid parameters (w_min dw w_max):"
 
-#parameters set by compute_scalar_GfReFreq() if passed to the function, otherwise they can be optionally set in file OmegaMaxEnt_TRIQS_params.dat
+#parameters set by compute_scalar_GfReFreq() if passed to the function, otherwise they can be optionally set in file OmegaMaxEnt_input_params.dat
 err_str = "error file:"
 inter_m_str = "interactive mode ([yes]/no):"
 SW_str="spectral function width:"
@@ -62,7 +62,7 @@ dw_str="real frequency step:"
 nu_grid_str="use non uniform grid in main spectral range (yes/[no]):"
 
 def compute_GfReFreq(G, ERR=None, grid_params=[], name="$G^R(\omega)$", interactive_mode=True, save_figures_data=True, save_G=True, inv_sym=False,
-					 comp_grid_params=[], mu=1, nu=1):
+					 comp_grid_params=[], non_uniform_grid=False, mu=1, nu=1):
 	"""
 	Compute a GfReFreq object or a BlockGf containing GfReFreq objects from a Matsubara input Green function using the program OmegaMaxEnt.
 	For more details, see the OmegaMaxEnt-TRIQS interface documentation and the OmegaMaxEnt user guide at
@@ -104,6 +104,10 @@ def compute_GfReFreq(G, ERR=None, grid_params=[], name="$G^R(\omega)$", interact
 						The second, if len(comp_grid_params)>=2, is the width of the main spectral region.
 						(typically between 2 and 4 standard deviations).
 						The third element, if len(comp_grid_params)=3, is the center of the main spectral region.
+						omega_step and spectrum_width will be ignored if not positive.
+
+	non_uniform_grid:	Optional boolean. Tells OmegaMaxEnt to use a non-uniform grid in the main spectral region for the computation. This will accelerate
+						the calculation if the spectrum has a peak at zero frequency with a width much smaller than the total width of the spectrum.
 
 	mu, nu:		Optional paramters involved in the calculation of off-diagonal elements of matrix-valued Green functions.
 				See appendix C of the OmegaMaxEnt user guide for more details.
@@ -117,24 +121,24 @@ def compute_GfReFreq(G, ERR=None, grid_params=[], name="$G^R(\omega)$", interact
 		if len(G.target_shape)==2:
 			ind = G.indices[0]
 			if G.target_shape[0]==1 and G.target_shape[1]==1 and G.indices[0]==G.indices[1]:
-				Gtmp=compute_scalar_GfReFreq(G[ind[0],ind[0]], ERR, grid_params, "", interactive_mode, save_figures_data, comp_grid_params)
+				Gtmp=compute_scalar_GfReFreq(G[ind[0],ind[0]], ERR, grid_params, name, interactive_mode, save_figures_data, comp_grid_params, non_uniform_grid)
 				n_freq = len(Gtmp.mesh)
 				GR=GfReFreq(indices=ind,window=(Gtmp.mesh.omega_min,Gtmp.mesh.omega_max),n_points=n_freq,name=name)
 				GR[ind[0],ind[0]]=Gtmp
 			elif G.indices[0]==G.indices[1]:
-				GR=compute_matrix_GfReFreq(G, grid_params, inv_sym, mu, nu, interactive_mode,save_figures_data, comp_grid_params)
+				GR=compute_matrix_GfReFreq(G, grid_params, inv_sym, mu, nu, interactive_mode, save_figures_data, name, comp_grid_params, non_uniform_grid)
 			else:
 				print "compute_GfReFreq() only treats Green functions with the same indices along both dimensions"
 				return 0
 		elif not len(G.target_shape):
-			GR=compute_scalar_GfReFreq(G, ERR, grid_params, name, interactive_mode, save_figures_data, comp_grid_params)
+			GR=compute_scalar_GfReFreq(G, ERR, grid_params, name, interactive_mode, save_figures_data, comp_grid_params, non_uniform_grid)
 		else:
 			print "compute_GfReFreq() only treats matrix or scalar Green functions"
 			return 0
 	else: #BlockGf
 		list_G=[]
 		for bl,Gbl in G:
-			Gtmp=compute_GfReFreq(Gbl, 0, grid_params, "", interactive_mode, save_figures_data, False, inv_sym, comp_grid_params, mu, nu)
+			Gtmp=compute_GfReFreq(Gbl, 0, grid_params, "", interactive_mode, save_figures_data, False, inv_sym, comp_grid_params, non_uniform_grid, mu, nu)
 			list_G.append(Gtmp)
 			if len(grid_params) != 3:
 				n_freq = len(Gtmp.mesh)
@@ -152,7 +156,7 @@ def compute_GfReFreq(G, ERR=None, grid_params=[], name="$G^R(\omega)$", interact
 	return GR
 
 
-def compute_matrix_GfReFreq(G, grid_params=[], inv_sym=False, mu=1, nu=1, interactive_mode=True, save_figures_data=False, name="$G^R(\omega)$", comp_grid_params=[]):
+def compute_matrix_GfReFreq(G, grid_params=[], inv_sym=False, mu=1, nu=1, interactive_mode=True, save_figures_data=False, name="$G^R(\omega)$", comp_grid_params=[], non_uniform_grid=False):
 	if not isinstance(G,Gf) and not isinstance(G,GfImFreq) and not isinstance(G,GfImTime):
 		print "compute_matrix_GfReFreq(): input type " + str(G.__class__) + " not accepted. Only objects of types Gf, GfImFreq or GfImTime are accepted."
 		return 0
@@ -174,14 +178,13 @@ def compute_matrix_GfReFreq(G, grid_params=[], inv_sym=False, mu=1, nu=1, intera
 
 	ind =G.indices[0]
 
-	Gtmp=compute_scalar_GfReFreq(G[ind[0],ind[0]], 0, grid_params, "", interactive_mode, save_figures_data, comp_grid_params)
+	Gtmp=compute_scalar_GfReFreq(G[ind[0],ind[0]], 0, grid_params, "", interactive_mode, save_figures_data, comp_grid_params, non_uniform_grid)
 
 	n_freq = len(Gtmp.mesh)
 
 	if len(grid_params)!=3:
 		step=(Gtmp.mesh.omega_max-Gtmp.mesh.omega_min)/(n_freq-1)
 		grid_params = [Gtmp.mesh.omega_min, step, Gtmp.mesh.omega_max]
-
 
 	GM=GfReFreq(indices=G.indices, window = (Gtmp.mesh.omega_min, Gtmp.mesh.omega_max), n_points = n_freq, name=name)
 
@@ -191,7 +194,7 @@ def compute_matrix_GfReFreq(G, grid_params=[], inv_sym=False, mu=1, nu=1, intera
 		A['G'] = GM[ind[0], ind[0]]
 
 	for l in ind[1:]:
-		GM[l, l]=compute_scalar_GfReFreq(G[l, l], 0, grid_params, "",interactive_mode, save_figures_data, comp_grid_params)
+		GM[l, l]=compute_scalar_GfReFreq(G[l, l], 0, grid_params, "",interactive_mode, save_figures_data, comp_grid_params, non_uniform_grid)
 		print "G[" + l + "," + l + "] computed"
 		with HA("G_Re_Freq_" + l + "_" + l + ".h5", 'w') as A:
 			A['G'] = GM[l, l]
@@ -200,9 +203,9 @@ def compute_matrix_GfReFreq(G, grid_params=[], inv_sym=False, mu=1, nu=1, intera
 		for l in range(len(ind)):
 			for m in range(l+1,len(ind)):
 				GO=G[ind[l],ind[l]]+mu*G[ind[l],ind[m]]+mu*G[ind[m],ind[l]]+mu*mu*G[ind[m],ind[m]]
-				GOR = compute_scalar_GfReFreq(GO, 0, grid_params, "", interactive_mode, save_figures_data, comp_grid_params)
+				GOR = compute_scalar_GfReFreq(GO, 0, grid_params, "", interactive_mode, save_figures_data, comp_grid_params, non_uniform_grid)
 				GP=G[ind[l],ind[l]]-1j*nu*G[ind[l],ind[m]]+1j*nu*G[ind[m],ind[l]]+nu*nu*G[ind[m],ind[m]]
-				GPR = compute_scalar_GfReFreq(GP, 0, grid_params, "", interactive_mode, save_figures_data, comp_grid_params)
+				GPR = compute_scalar_GfReFreq(GP, 0, grid_params, "", interactive_mode, save_figures_data, comp_grid_params, non_uniform_grid)
 				R=GOR-GM[ind[l],ind[l]]-mu*mu*GM[ind[m],ind[m]]
 				S=GPR-GM[ind[l],ind[l]]-nu*nu*GM[ind[m], ind[m]]
 				GM[ind[l],ind[m]]=(R/mu+1j*S/nu)/2
@@ -217,7 +220,7 @@ def compute_matrix_GfReFreq(G, grid_params=[], inv_sym=False, mu=1, nu=1, intera
 		for l in range(len(ind)):
 			for m in range(l+1,len(ind)):
 				GO=G[ind[l],ind[l]]+2*mu*G[ind[l],ind[m]]+mu*mu*G[ind[m],ind[m]]
-				GOR = compute_scalar_GfReFreq(GO, 0, grid_params, "", interactive_mode, save_figures_data, comp_grid_params)
+				GOR = compute_scalar_GfReFreq(GO, 0, grid_params, "", interactive_mode, save_figures_data, comp_grid_params, non_uniform_grid)
 				GM[ind[l],ind[m]]=(GOR-GM[ind[l],ind[l]]-mu*mu*GM[ind[m],ind[m]])/(2*mu)
 				GM[ind[m],ind[l]]=GM[ind[l], ind[m]]
 				print "G[" + ind[l] + "," + ind[m] + "] computed"
@@ -229,7 +232,7 @@ def compute_matrix_GfReFreq(G, grid_params=[], inv_sym=False, mu=1, nu=1, intera
 	return GM
 
 
-def compute_scalar_GfReFreq(G, ERR=0, grid_params=[], name="$G^R(\omega)$", interactive_mode=True, save_figures_data=True, comp_grid_params=[]):
+def compute_scalar_GfReFreq(G, ERR=0, grid_params=[], name="$G^R(\omega)$", interactive_mode=True, save_figures_data=True, comp_grid_params=[], non_uniform_grid=False):
 	if not isinstance(G,Gf) and not isinstance(G,GfImFreq) and not isinstance(G,GfImTime):
 		print "compute_scalar_GfReFreq(): input type " + str(G.__class__) + " not accepted. Only objects of types Gf, GfImFreq or GfImTime are accepted."
 		return 0
@@ -287,12 +290,14 @@ def compute_scalar_GfReFreq(G, ERR=0, grid_params=[], name="$G^R(\omega)$", inte
 				str_tmp = grid_params_str+'\n'
 		elif error_provided and str_tmp[0:len(err_str)]==err_str:
 			str_tmp=err_str+error_file_name+'\n'
-		elif len(comp_grid_params)>0 and str_tmp[0:len(dw_str)]==dw_str and comp_grid_params[0]!=0:
+		elif len(comp_grid_params)>0 and str_tmp[0:len(dw_str)]==dw_str and comp_grid_params[0]>0:
 			str_tmp =dw_str+str(comp_grid_params[0])+'\n'
-		elif len(comp_grid_params)>1 and str_tmp[0:len(SW_str)]==SW_str and comp_grid_params[1]!=0:
+		elif len(comp_grid_params)>1 and str_tmp[0:len(SW_str)]==SW_str and comp_grid_params[1]>0:
 			str_tmp =SW_str+str(comp_grid_params[1])+'\n'
-		elif len(comp_grid_params)>2 and str_tmp[0:len(SC_str)]==SC_str and comp_grid_params[2]!=0:
+		elif len(comp_grid_params)>2 and str_tmp[0:len(SC_str)]==SC_str:
 			str_tmp =SC_str+str(comp_grid_params[2])+'\n'
+		elif non_uniform_grid and str_tmp[0:len(nu_grid_str)]==nu_grid_str:
+			str_tmp = nu_grid_str + "yes" + '\n'
 		elif not interactive_mode and str_tmp[0:len(inter_m_str)]==inter_m_str:
 			str_tmp=inter_m_str+"no"+'\n'
 		pf.write(str_tmp)
