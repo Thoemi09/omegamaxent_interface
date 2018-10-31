@@ -61,8 +61,8 @@ SC_str="spectral function center:"
 dw_str="real frequency step:"
 nu_grid_str="use non uniform grid in main spectral range (yes/[no]):"
 
-def compute_GfReFreq(G, ERR=None, grid_params=[], name="$G^R(\omega)$", interactive_mode=True, save_figures_data=True, save_G=True, inv_sym=False,
-					 comp_grid_params=[], non_uniform_grid=False, mu=1, nu=1):
+def compute_GfReFreq(G, ERR=None, grid_params=[], name="$G^R(\omega)$", interactive_mode=True, save_figures_data=True, save_G=True,
+					 comp_grid_params=[], non_uniform_grid=False, inv_sym=False, mu=1, nu=1):
 	"""
 	Compute a GfReFreq object or a BlockGf containing GfReFreq objects from a Matsubara input Green function using the program OmegaMaxEnt.
 	For more details, see the OmegaMaxEnt-TRIQS interface documentation and the OmegaMaxEnt user guide at
@@ -70,47 +70,45 @@ def compute_GfReFreq(G, ERR=None, grid_params=[], name="$G^R(\omega)$", interact
 
 	Parameters:
 	-----------
-	G: 	Gf, GfImFreq, GfImTime or BlockGf object.
+	G:	Gf, GfImFreq, GfImTime or BlockGf object.
 		Input Matsubara Green function.
 
 	ERR:	Optional numpy array.
-			Standard deviation if G is scalar or has a single element.
-			ERR has the same shape as the data in G and its indices must match the mesh.
-			For a non-diagonal covariance, see the interface documentation or the OmegaMaxEnt User Guide.
+		Standard deviation if G is scalar or has a single element.
+		ERR must have the same shape as the data in G and its indices must match the mesh.
+		For a non-diagonal covariance, see the interface documentation or the OmegaMaxEnt User Guide.
 
 	grid_params:	Optional list of the form [omega_min, omega_step, omega_max].
-					Defines the real frequency grid of the output Green function. If empty, the output grid is set by OmegaMaxEnt.
+			Defines the real frequency grid of the output Green function. If empty, the output grid is set by OmegaMaxEnt.
 
 	name:	Optional string.
-			Name parameter of the output GfReFreq object.
+		Name parameter of the returned GfReFreq object
 
 	interactive_mode:	Optional boolean.
-						Turns off the interactive mode of OmegaMaxEnt if set to False.
+				Turns off the interactive mode of OmegaMaxEnt if set to False.
 
 	save_figures_data:	Optional boolean.
-						Tells OmegaMaxEnt not to save figure files if set to False.
-						Set to False if G is a matrix or a BlockGf
+				Tells OmegaMaxEnt not to save figure files if set to False.
+				Set to False if G is a matrix or a BlockGf
 
 	save_G:		Optional boolean.
-				By default, the result is save in hdf5 format in file G_Re_Freq.h5.
+			By default, the result is save in hdf5 format in file G_Re_Freq.h5.
 
-	inv_sym:	Optional boolean.
-				If G is a matrix or a BlockGf, set inv_sym to True if G[i,j]=G[j,i]. This simplifies the calculation of the off diagonal elements.
-
-	comp_grid_params:	Optional list of the form [omega_step], [omega_step, spectrum_width] or [omega_step, spectrum_width, spectrum_center].
-						Grid parameters used in the computation.
-						The first element, if len(comp_grid_params)>=1, is the frequency step used in the main spectral region,
-						namely, the part of the grid where most of the spectral weight is located.
-						The second, if len(comp_grid_params)>=2, is the width of the main spectral region.
-						(typically between 2 and 4 standard deviations).
-						The third element, if len(comp_grid_params)=3, is the center of the main spectral region.
-						omega_step and spectrum_width will be ignored if not positive.
+	comp_grid_params:	Optional list of the form [omega_step] or [omega_step, spectrum_width] or [omega_step, spectrum_width, spectrum_center].
+				Grid parameters used in the computation.
+				omega_step is the frequency step used in the main spectral region, namely, the part of the grid where most of the spectral weight is located.
+				spectrum_width is the width of the main spectral region (typically between 2 and 4 standard deviations).
+				spectrum_center is the center of the main spectral region.
+				omega_step and spectrum_width are ignored if not positive.
 
 	non_uniform_grid:	Optional boolean. Tells OmegaMaxEnt to use a non-uniform grid in the main spectral region for the computation. This will accelerate
-						the calculation if the spectrum has a peak at zero frequency with a width much smaller than the total width of the spectrum.
+				the calculation if the spectrum has a peak at zero frequency with a width much smaller than the total width of the spectrum.
 
-	mu, nu:		Optional paramters involved in the calculation of off-diagonal elements of matrix-valued Green functions.
-				See appendix C of the OmegaMaxEnt user guide for more details.
+	inv_sym:	Optional boolean.
+			If G is a matrix or a BlockGf, set inv_sym to True if G[i,j]=G[j,i]. This simplifies the calculation of the off diagonal elements.
+
+	mu, nu:		Optional parameters involved in the calculation of off-diagonal elements of matrix-valued Green functions.
+			See appendix C of the OmegaMaxEnt user guide for more details.
 	"""
 
 	if not isinstance(G,Gf) and not isinstance(G,GfImFreq) and not isinstance(G,GfImTime) and not isinstance(G,BlockGf):
@@ -138,7 +136,7 @@ def compute_GfReFreq(G, ERR=None, grid_params=[], name="$G^R(\omega)$", interact
 	else: #BlockGf
 		list_G=[]
 		for bl,Gbl in G:
-			Gtmp=compute_GfReFreq(Gbl, 0, grid_params, "", interactive_mode, save_figures_data, False, inv_sym, comp_grid_params, non_uniform_grid, mu, nu)
+			Gtmp=compute_GfReFreq(Gbl, 0, grid_params, "", interactive_mode, save_figures_data, False, comp_grid_params, non_uniform_grid, inv_sym, mu, nu)
 			list_G.append(Gtmp)
 			if len(grid_params) != 3:
 				n_freq = len(Gtmp.mesh)
@@ -157,6 +155,10 @@ def compute_GfReFreq(G, ERR=None, grid_params=[], name="$G^R(\omega)$", interact
 
 
 def compute_matrix_GfReFreq(G, grid_params=[], inv_sym=False, mu=1, nu=1, interactive_mode=True, save_figures_data=False, name="$G^R(\omega)$", comp_grid_params=[], non_uniform_grid=False):
+	"""
+	Used by compute_GfReFreq() to compute a matrix-valued GfReFreq from a matrix-valued Matsubara function G.
+	"""
+
 	if not isinstance(G,Gf) and not isinstance(G,GfImFreq) and not isinstance(G,GfImTime):
 		print "compute_matrix_GfReFreq(): input type " + str(G.__class__) + " not accepted. Only objects of types Gf, GfImFreq or GfImTime are accepted."
 		return 0
@@ -233,6 +235,9 @@ def compute_matrix_GfReFreq(G, grid_params=[], inv_sym=False, mu=1, nu=1, intera
 
 
 def compute_scalar_GfReFreq(G, ERR=0, grid_params=[], name="$G^R(\omega)$", interactive_mode=True, save_figures_data=True, comp_grid_params=[], non_uniform_grid=False):
+	"""
+	Used by compute_GfReFreq() and compute_matrix_GfReFreq() to compute a scalar GfReFreq object from a scalar Matsubara function G.
+	"""
 	if not isinstance(G,Gf) and not isinstance(G,GfImFreq) and not isinstance(G,GfImTime):
 		print "compute_scalar_GfReFreq(): input type " + str(G.__class__) + " not accepted. Only objects of types Gf, GfImFreq or GfImTime are accepted."
 		return 0
@@ -249,7 +254,7 @@ def compute_scalar_GfReFreq(G, ERR=0, grid_params=[], name="$G^R(\omega)$", inte
 		cmd = cmd + ["-ni"]
 
 	if not path.exists(params_file):
-		create_params_file(False,cmd)
+		create_params_file(False)
 	
 	im_t=isinstance(G.mesh,MeshImTime)
 #	if im_t:
@@ -333,7 +338,7 @@ def compute_scalar_GfReFreq(G, ERR=0, grid_params=[], name="$G^R(\omega)$", inte
 	if error_provided:
 		dim_ERR=np.array(ERR.shape)
 		if dim_ERR.max()!=n_points:
-			print "compute_GfReFreq(): provided error array does not have the same size as the data."
+			print "compute_scalar_GfReFreq(): provided error array does not have the same size as the data."
 			return 0
 		if ERR.shape[1]>ERR.shape[0]:
 			ERR=ERR.tanspose()
@@ -361,7 +366,17 @@ def compute_scalar_GfReFreq(G, ERR=0, grid_params=[], name="$G^R(\omega)$", inte
 
 	return GR_omega
 
-def create_params_file(overwrite=True, cmd=[OME_cmd,"-ni"]):
+def create_params_file(overwrite=True):
+	"""
+	create the parameter files OmegaMaxEnt_input_params.dat and OmegaMaxEnt_other_params.dat used by OmegaMaxEnt.
+
+	parameters:
+	----------
+	overwrite:	optional boolean.
+			If True, existing parameter files will be destroyed.
+	"""
+	cmd = [OME_cmd, "-ni"]
+
 	if not path.exists(params_file) or overwrite:
 		if not path.exists(template_params_file):
 			if path.exists(params_file):
@@ -385,6 +400,10 @@ def create_params_file(overwrite=True, cmd=[OME_cmd,"-ni"]):
 		os.remove(template_params_file)
 
 def display_figures():
+	"""
+	Display the figures showing the result after compute_GfReFreq() was called with save_figures_data=True (default). The figures are the ones displayed
+	if interactive_mode=True (default).
+	"""
 	figs_ind=np.int_(np.loadtxt("figs_ind.dat"))
 	if not isinstance(figs_ind,np.ndarray):
 		figs_ind=np.array([figs_ind])
@@ -396,6 +415,9 @@ def display_figures():
 			exec(fig_cmd)
 
 def save_Fourier_transform_G_hdf5():
+	"""
+	Called by compute_scalar_GfReFreq() to save the Fourier transform of a scalar GfImTime object as a GfImFreq in hdf5 format
+	"""
 	data_file = open(FT_G_file_name, "r")
 	G_data = np.loadtxt(data_file)
 	data_file.close()
@@ -417,12 +439,10 @@ def save_Fourier_transform_G_hdf5():
 	else:
 		beta = pi/G_data[0, 0]
 
-	Gwn = GfImFreq(indices=[0], n_points=N, beta=beta, statistic=statistic)
+	Gwn = GfImFreq(target_shape=(), n_points=N, beta=beta, statistic=statistic)
 
-	Gr_p = np.array([G_data[:N, 1]])
-	Gr_p = Gr_p.transpose()
-	Gi_p = np.array([G_data[:N, 2]])
-	Gi_p = Gi_p.transpose()
+	Gr_p = G_data[:N, 1]
+	Gi_p = G_data[:N, 2]
 
 	Gi_n = -Gi_p[ind0:]
 	Gi_n = np.flipud(Gi_n)
@@ -432,8 +452,8 @@ def save_Fourier_transform_G_hdf5():
 	Gr = np.concatenate((Gr_n, Gr_p), 0)
 	Gi = np.concatenate((Gi_n, Gi_p), 0)
 
-	Gwn.data.real[:, :, 0] = Gr
-	Gwn.data.imag[:, :, 0] = Gi
+	Gwn.data.real = Gr
+	Gwn.data.imag = Gi
 
 	A = HA("G_im_freq.h5", "w")
 	A['G'] = Gwn

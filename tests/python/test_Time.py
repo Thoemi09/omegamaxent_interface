@@ -9,6 +9,8 @@ import os
 import shutil as su
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
+np.random.seed(0)
+
 tol_int_diffA=0.05
 
 Npts_dos=1000
