@@ -1,10 +1,7 @@
 import unittest as ut
 import OmegaMaxEnt_TRIQS as OT
-# import scipy.integrate as integ
 from math import ceil, exp, sqrt, pi
 from pytriqs.dos import HilbertTransform, DOSFromFunction
-# from pytriqs.plot.mpl_interface import oplot
-from matplotlib import pyplot as plt
 import warnings
 from pytriqs.gf import *
 import numpy as np

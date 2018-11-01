@@ -1,10 +1,7 @@
 import unittest as ut
 import OmegaMaxEnt_TRIQS as OT
-# import scipy.integrate as integ
 from math import ceil, exp, sqrt, pi
 from pytriqs.dos import HilbertTransform, DOSFromFunction
-# from pytriqs.plot.mpl_interface import oplot
-from matplotlib import pyplot as plt
 import warnings
 from pytriqs.gf import *
 import numpy as np
@@ -101,7 +98,7 @@ class OmegaMaxEnt_test_with_error(ut.TestCase):
         GR=OT.compute_GfReFreq(G, ERR=ERRG, interactive_mode=inter_mode, save_figures_data=save_figs, grid_params=[wl, dw, wr], comp_grid_params=[dw_comp, SW, SC], name="$G_{ME}$")
 
         os.chdir("..")
-        su.rmtree("test_dir")
+        su.rmtree("test_dir_1")
 
         Aw_me=-GR.data.imag/pi
 
