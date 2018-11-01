@@ -5,4 +5,7 @@ foreach(t ${all_tests})
 endforeach()
 
 # Set the PythonPath for all tests
-set_property(TEST ${all_tests} PROPERTY ENVIRONMENT PYTHONPATH=${CMAKE_SOURCE_DIR}/python:$ENV{PYTHONPATH})
+set_property(TEST ${all_tests} PROPERTY ENVIRONMENT
+  PATH=${CMAKE_BINARY_DIR}/omegamaxent/cpp:$ENV{PATH}
+  PYTHONPATH=${CMAKE_SOURCE_DIR}/python:$ENV{PYTHONPATH}
+)
