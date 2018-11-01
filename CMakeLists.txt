@@ -24,7 +24,7 @@ add_subdirectory(python)
 option(Build_Tests "Build tests" ON)
 if(Build_Tests)
   enable_testing()
-  add_subdirectory(tests/python)
+  add_subdirectory(test/python)
 endif()
 
 option(Build_Documentation "Build documentation" OFF)
