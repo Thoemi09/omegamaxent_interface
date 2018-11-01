@@ -9,6 +9,8 @@ import os
 import shutil as su
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
+test_dir_name="test_dir_1"
+
 np.random.seed(1)
 
 tol_int_diffA=0.05
@@ -91,14 +93,14 @@ class OmegaMaxEnt_test_with_error(ut.TestCase):
 
         ERRG=np.concatenate((errGr,errGi),axis=1)
 
-        if not os.path.exists("test_dir"):
-            os.mkdir("test_dir")
-        os.chdir("test_dir")
+        if not os.path.exists(test_dir_name):
+            os.mkdir(test_dir_name)
+        os.chdir(test_dir_name)
 
         GR=OT.compute_GfReFreq(G, ERR=ERRG, interactive_mode=inter_mode, save_figures_data=save_figs, grid_params=[wl, dw, wr], comp_grid_params=[dw_comp, SW, SC], name="$G_{ME}$")
 
         os.chdir("..")
-        su.rmtree("test_dir_1")
+        su.rmtree(test_dir_name)
 
         Aw_me=-GR.data.imag/pi
 
