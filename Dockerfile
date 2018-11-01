@@ -8,6 +8,6 @@ COPY . $SRC/$APPNAME
 WORKDIR $BUILD/$APPNAME
 RUN chown build .
 USER build
-RUN cmake $SRC/$APPNAME -DTRIQS_ROOT=${INSTALL} && make -j2
+RUN cmake $SRC/$APPNAME -DTRIQS_ROOT=${INSTALL} && make -j2 && make test
 USER root
 RUN make install
