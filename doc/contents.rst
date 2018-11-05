@@ -7,18 +7,13 @@ Contents
 --------
 
 .. toctree::
-   :maxdepth: 5
+   :maxdepth: 3
 
    index
    install
+   reference/contents
    issues
    changelog
    about
-
-Reference manual
-----------------
-
-.. toctree::
-   :maxdepth: 5
 
 

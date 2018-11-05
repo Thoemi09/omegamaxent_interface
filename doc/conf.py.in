@@ -28,12 +28,12 @@ templates_path = ['@CMAKE_SOURCE_DIR@/doc/_templates']
 html_theme = 'triqs'
 html_theme_path = ['@TRIQS_THEMES_PATH@']
 html_show_sphinx = False
-html_context = {'header_title': 'OmegaMaxEnt',
+html_context = {'header_title': 'OmegaMaxEnt_TRIQS',
                 'header_subtitle': 'Analytic Continuation',
                 'header_links': [['Install', 'install'],
-                                 ['Documentation', 'documentation'],
+                                 ['Documentation', 'contents'],
                                  ['Issues', 'issues'],
-                                 ['About app4triqs', 'about']]}
+                                 ['About OmegaMaxEnt_TRIQS', 'about']]}
 html_static_path = ['@CMAKE_SOURCE_DIR@/doc/_static']
 html_sidebars = {'index': ['sideb.html', 'searchbox.html']}
 

@@ -234,7 +234,7 @@ def compute_matrix_GfReFreq(G, grid_params=[], inv_sym=False, mu=1, nu=1, intera
 	return GM
 
 
-def compute_scalar_GfReFreq(G, ERR=0, grid_params=[], name="$G^R(\omega)$", interactive_mode=True, save_figures_data=True, comp_grid_params=[], non_uniform_grid=False):
+def compute_scalar_GfReFreq(G, ERR=None, grid_params=[], name="$G^R(\omega)$", interactive_mode=True, save_figures_data=True, comp_grid_params=[], non_uniform_grid=False):
 	"""
 	Used by compute_GfReFreq() and compute_matrix_GfReFreq() to compute a scalar GfReFreq object from a scalar Matsubara function G.
 	"""
