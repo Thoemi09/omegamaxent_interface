@@ -75,7 +75,7 @@ def compute_GfReFreq(G, ERR=None, grid_params=[], name="$G^R(\omega)$", interact
 
 	ERR:	Optional numpy array.
 		Standard deviation if G is scalar or has a single element.
-		ERR must have the same shape as the data in G and its indices must match the mesh.
+		ERR must have the same shape as the G.data.
 		For a non-diagonal covariance, see the interface documentation or the OmegaMaxEnt User Guide.
 
 	grid_params:	Optional list of the form [omega_min, omega_step, omega_max].

@@ -26,7 +26,7 @@ ERR:
 
     Standard deviation if G is scalar or has a single element.
 
-    ERR must have the same shape as G.data and its indices must match the mesh.
+    ERR must have the same shape as G.data.
 
     For a non-diagonal covariance, see the :math:`\Omega MaxEnt` `user guide`_.
 
@@ -74,8 +74,6 @@ comp_grid_params:
 
     spectrum_center is the center of the main spectral region.
 
-    :math:`\Delta\omega` and spectrum_width are ignored if not positive.
-
 non_uniform_grid:
     Optional boolean.
 
@@ -86,7 +84,7 @@ non_uniform_grid:
 inv_sym:
     Optional boolean.
 
-    If G is a matrix or a BlockGf, set inv_sym to True if :math:`G_{ji}=G_{ij}`. This simplifies the calculation of the off diagonal elements.
+    If G is a matrix or a BlockGf, set ``inv_sym=True`` if :math:`G_{ji}=G_{ij}`. This simplifies the calculation of the off diagonal elements.
 
 mu, nu:
     Optional parameters involved in the calculation of off-diagonal elements of matrix-valued Green functions. See appendix C of the :math:`\Omega MaxEnt` `user guide`_ for more details.
@@ -95,11 +93,11 @@ mu, nu:
 :math:`\Omega MaxEnt` parameter files
 --------------------------------------
 
-:math:`\Omega MaxEnt` uses the file **OmegaMaxEnt_input_params.dat** to interact with the user. You can optionally create that file in advance with the function **create_params_file()**. This allows you to set some parameters that are not set by **compute_GfReFreq()**. Some parameters, which appear in the top section of the file, are exclusively set by **compute_GfReFreq()**. Otherwise you can modify the other parameters.
+:math:`\Omega MaxEnt` uses the file **OmegaMaxEnt_input_params.dat** to interact with the user. You can optionally create that file in advance with the function **create_params_file()**. This allows you to set some parameters that are not set by **compute_GfReFreq()**. Some parameters, which appear in the top section of the file, are exclusively set by **compute_GfReFreq()**, but all the other parameters can be modified.
 
 If **OmegaMaxEnt_input_params.dat** does not exist when **compute_GfReFreq()** is called, it will create it.
 
-:math:`\Omega MaxEnt` also uses a file called **OmegaMaxEnt_other_params.dat**, also created by **create_params_file()**, which defines a certain number of parameters on which the computation depends. Do not modify this file unless you are a very advanced user.
+:math:`\Omega MaxEnt` also uses a file called **OmegaMaxEnt_other_params.dat**, also created by **create_params_file()**, which defines a certain number of internal parameters on which the computation depends. Do not modify this file unless you are an advanced user.
 
 All the parameters in **OmegaMaxEnt_input_params.dat** and **OmegaMaxEnt_other_params.dat** are described in the `user guide`_.
 
@@ -109,19 +107,38 @@ All the parameters in **OmegaMaxEnt_input_params.dat** and **OmegaMaxEnt_other_p
 Interactive mode
 ----------------
 
-In interactive mode, :math:`\Omega MaxEnt` displays figures during the execution. If parameter "display preprocessing figures" in **OmegaMaxEnt_input_params.dat** is enabled, figures are displayed during the preprocessing stage. Otherwise, figures are displayed only at the end of the calculation, showing the resulting Green function, along with different quantities useful to evaluate the quality of the results. Taking a look at those figures is important, especially when processing a set of data for the first time. You can thus ensure that the calculation is indeed complete, that the algorithm worked well, and assess the reliability of the result. Details about how to interpret the different quantities displayed are given in the user guide.
+In interactive mode, :math:`\Omega MaxEnt` displays figures during the execution. If parameter "display preprocessing figures" in **OmegaMaxEnt_input_params.dat** is enabled, figures are displayed during the preprocessing stage. Otherwise, figures are displayed only at the end of the calculation, showing the resulting Green function, along with different quantities used as diagnostic tools. Using those tools is very useful to assess, first, if the result is valid and, second, if it is the best result possible given the data. Therefore, when processing a set of data for the first time, it is strongly advised to use the interactive mode. Details about how to interpret the diagnostic quantities are given in the `user guide`_.
 
-In interactive mode, the program pauses at the end of the preprocessing stage if parameter "preprocess only" is enabled, and at the end of the calculation. During the pause, you can modify **OmegaMaxEnt_input_params.dat** and resume the execution of :math:`\Omega MaxEnt` once the file is saved. Otherwise, if you are satisfied with the result displayed, you can exit the execution of :math:`\Omega MaxEnt` by closing all the figures and entering any character other than 'y' in the terminal to resume the execution of your python code. If interactive_mode=False, :math:`\Omega MaxEnt` will not display any figure and exit at the end of the calculation.
+In interactive mode, :math:`\Omega MaxEnt` pauses at the end of the preprocessing stage if parameter "preprocess only" in **OmegaMaxEnt_input_params.dat** is enabled, and at the end of the calculation. During a pause, you can modify **OmegaMaxEnt_input_params.dat** and resume the execution of :math:`\Omega MaxEnt` once the file is saved. Otherwise, if the calculation is over and you are satisfied with the result displayed, you can exit the execution by closing all the figures and entering any character other than ``'y'`` in the terminal. This will resume the execution of the python function **compute_GfReFreq()**.
 
-.. _`imaginary time`:
+If ``interactive_mode=False``, :math:`\Omega MaxEnt` will not display any figure and will exit at the end of the calculation, resuming the execution of **compute_GfReFreq()**.
+
+.. note::
+
+    For the continuation of **matrix-valued** or **block** Green's functions, :math:`\Omega MaxEnt` is called  the same number of times as there are elements in each matrix (or in the upper part if ``inv_sym=True``). If you are in interactive mode, figures showing the result will appear each time and, once you have closed them, you have to tell the program **not** to continue execution to let the analytic continuation of the matrix or block function continue.
+
 
 Imaginary time data
 -------------------
 
-:math:`\Omega MaxEnt` works internally with the Matsubara frequency Green function. Therefore, if the data are provided in imaginary time, the program first has to compute the Fourier transform of the Green function before starting the calculation. This calculation is fast because it is only one fast Fourier transform. However, if you provide errors, the covariance matrix must also be Fourier transformed. If the number of time points is a few hundreds at most, this calculation is also over quickly, but if the number of points is more than a thousand, the calculation time becomes of the order of a few minutes and more, which might seem long if you are working in interactive mode. Also, if the standard deviation does not depend on tau, the covariance matrix is also proportional to the identity matrix in Matsubara frequency. Therefore, do not provide any error in that case and no covariance matrix will be Fourier transformed. The result will not be affected because it does not depend on the absolute value of the standard deviation. On the other hand, if the standard deviation depends on tau, the covariance matrix has to be Fourier transformed. In case, and if you need to redo the calculation with the same data, you can accelerate the preprocessing by using the Fourier transform of your Green function that is saved as a GfImFreq object called 'G' in file "G_im_freq.h5" and the Fourier transform of the covariance matrix saved in files "covar_ReRe.dat", "covar_ImIm.dat" and "covar_ReIm.dat" in directory "Fourier_transformed_data". Use the lines "re-re covariance file", "im-im covariance file" and "re-im covariance file" in section INPUT FILES PARAMETERS of the file **OmegaMaxEnt_input_params.dat** to provide the covariance to :math:`\Omega MaxEnt`.
+If your data is a scalar GfImTime and you do not have an estimate of the error, or the error is constant, do not set parameter ``ERR``. Otherwise, because :math:`\Omega MaxEnt` works internally in Matsubara frequency, it will Fourier transform the covariance matrix, which is not useful in that case because the result will also be a constant diagonal covariance in frequency and the result does not depend on the absolute value of the error. Avoiding the Fourier transform of the covariance matrix will therefore save computation time without changing the result.
+
+On the other hand, if the error depends on :math:`\tau` and you use ``ERR`` to provide it, note that the Fourier transform of the Green function is saved by default as a GfImFreq object called 'G' in file "G_im_freq.h5" and the Fourier transform of the covariance matrix is saved in files "covar_ReRe.dat", "covar_ImIm.dat" and "covar_ReIm.dat" in directory "Fourier_transformed_data". This can be useful if you want to perform the continuation again on the same data. Then you can pass the saved GfImFreq object to **compute_GfReFreq()** instead of the original GfImTime object and use the parameters "re-re covariance file", "im-im covariance file" and "re-im covariance file" in section INPUT FILES PARAMETERS of the file **OmegaMaxEnt_input_params.dat** to provide the covariance to :math:`\Omega MaxEnt`.
 
 
-For more details on how to use :math:`\Omega MaxEnt`, see the user guide.
+Output Figures
+--------------
+
+If ``save_figures_data=True``, reagrdless of the value of ``interactive_mode``, you can display the same figures that are displayed in interactive mode with the function **display_figures()** after the execution of **compute_GfReFreq()**. Note however that only the figures for the last continuation done by :math:`\Omega MaxEnt` in a given directory are accessible.
+
+
+Choice of frequency grid
+------------------------
+
+
+
+
+For more details on how to use :math:`\Omega MaxEnt`, see the `user guide`_.
 
 
 Example: Suppose you have saved a TRIQS Matsubara Green's function as 'G' in file "G.h5", here is a script to obtain the corresponding real frequency Green's function::
@@ -137,5 +154,5 @@ Example: Suppose you have saved a TRIQS Matsubara Green's function as 'G' in fil
     GR=OT.compute_GfReFreq(G)
 
 
-.. _OME_main_page: https://www.physique.usherbrooke.ca/MaxEnt/index.php/Main_Page
+
 .. _`user guide`: https://www.physique.usherbrooke.ca/MaxEnt/index.php/User_Guide
