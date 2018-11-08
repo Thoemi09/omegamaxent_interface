@@ -13,7 +13,7 @@ Contents
    install
    reference/contents
    issues
-   changelog
    about
 
+.. changelog
 

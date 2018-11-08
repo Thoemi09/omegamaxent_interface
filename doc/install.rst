@@ -1,10 +1,7 @@
-.. highlight:: bash
-
 .. _install:
 
 Installation
 ============
-
 
 Prerequisite
 -------------------
@@ -12,51 +9,45 @@ Prerequisite
 #. The :ref:`TRIQS <triqslibs:welcome>` toolbox (see :ref:`TRIQS installation instruction <triqslibs:installation>`).
    In the following, we will suppose that it is installed in the ``path_to_triqs`` directory.
 
+#. macOs users only: Do not use your system's version of LAPACK. Instead, install LAPACK using `Homebrew <https://brew.sh/>`_::
+
+    $ brew install lapack
+
+
 Installation steps
 ------------------
 
 #. Download the sources from github::
 
-     $ git clone https://github.com/triqs/app4triqs.git app4triqs.src
+    $ git clone https://github.com/TRIQS/omegamaxent_interface
 
 #. Create an empty build directory where you will compile the code::
 
-     $ mkdir app4triqs.build && cd app4triqs.build
-
-#. Make sure that you have added the TRIQS and Cpp2Py installation to your environment variables::
-
-     $ source path_to_triqs/share/cpp2pyvarsh.sh
-     $ source path_to_triqs/share/triqsvarsh.sh
+    $ mkdir omegamaxent_interface/build && cd omegamaxent_interface/build
 
 #. In the build directory call cmake::
 
-     $ cmake ../app4triqs.src
+    $ cmake ..
 
 #. Compile the code, run the tests and install the application::
 
-     $ make
-     $ make test
-     $ make install
-
-Version compatibility
----------------------
-
-Be careful that the version of the TRIQS library and of the solver must be
-compatible (more information on the :ref:`TRIQS website <triqslibs:versions>`).
-As app4triqs is still in alpha phase (unstable), it can only be compiled against the
-unstable branch of triqs.
+    $ make
+    $ make test
+    $ make install
 
 Custom CMake options
 --------------------
 
-Functionality of ``app4triqs`` can be tweaked using extra compile-time options passed to CMake::
+Using the following syntax::
 
-    cmake -DOPTION1=value1 -DOPTION2=value2 ... ../app4triqs.src
+    $ cmake -DOPTION1=value1 -DOPTION2=value2 ..
 
-+-----------------------------------------------------------------------+-----------------------------------------------+
-| Options                                                               | Syntax                                        |
-+=======================================================================+===============================================+
-| Specify an installation path other than path_to_triqs                 | -DCMAKE_INSTALL_PREFIX=path_to_app4triqs      |
-+-----------------------------------------------------------------------+-----------------------------------------------+
-| Build the documentation locally                                       | -DBuild_Documentation=ON                      |
-+-----------------------------------------------------------------------+-----------------------------------------------+
+you can pass the following options to CMake:
+
+    +--------------------------------------------------------------+--------------------------------------------------+
+    | Options                                                      | Syntax                                           |
+    +==============================================================+==================================================+
+    | Specify an installation path other than path_to_triqs        | -DCMAKE_INSTALL_PREFIX=maxent_path               |
+    +--------------------------------------------------------------+--------------------------------------------------+
+    | Build the documentation locally                              | -DBuild_Documentation=ON                         |
+    +--------------------------------------------------------------+--------------------------------------------------+

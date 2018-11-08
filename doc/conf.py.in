@@ -22,7 +22,7 @@ author = u'Dominic Bergeron'
 copyright = u'2018, Simons Foundation'
 version = ''
 
-mathjax_path = "/Users/dom2/MathJax/MathJax.js?config=default"
+mathjax_path = "@MATHJAX_PATH@/MathJax.js?config=default"
 templates_path = ['@CMAKE_SOURCE_DIR@/doc/_templates']
 
 html_theme = 'triqs'

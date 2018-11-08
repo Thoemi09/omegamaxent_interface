@@ -6,7 +6,7 @@ About OmegaMaxEnt_TRIQS
 Author
 ------
 
-OmegaMaxEnt_TRIQS has been developed by Dominic Bergeron as an independant contractor for the Centre for Computational Quantum physics (CCQ), Flatiron Institute, Simons Foundation.
+OmegaMaxEnt_TRIQS has been developed by Dominic Bergeron for the Centre for Computational Quantum physics (CCQ), Flatiron Institute, Simons Foundation.
 
 :math:`\Omega MaxEnt` has been developed by Dominic Bergeron at Université de Sherbrooke, supported by the Natural Sciences and Engineering Research Council of Canada (NSERC) and the Tier I Canada Research Chair Program (prof. André-Marie Tremblay).
 

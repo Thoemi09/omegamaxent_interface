@@ -1,5 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+
 # Default to Release build type
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Type of build" FORCE)
@@ -29,9 +31,12 @@ endif()
 
 option(Build_Documentation "Build documentation" OFF)
 if(Build_Documentation)
+  find_package(MathJax REQUIRED)
+  message(STATUS "Detected MathJax at ${MATHJAX_PATH}")
   if(NOT TRIQS_WITH_DOCUMENTATION)
     message("Error: TRIQS library has not been compiled with its documentation")
   else()
+    message("building documentation")
     add_subdirectory(doc)
   endif()
 endif()
