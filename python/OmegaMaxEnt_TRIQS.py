@@ -61,12 +61,12 @@ SC_str="spectral function center:"
 dw_str="real frequency step:"
 nu_grid_str="use non uniform grid in main spectral range (yes/[no]):"
 
-def compute_GfReFreq(G, ERR=None, grid_params=[], name="$G^R(\omega)$", interactive_mode=True, save_figures_data=True, save_G=True,
-					 comp_grid_params=[], non_uniform_grid=False, inv_sym=False, mu=1, nu=1):
+def compute_GfReFreq(G, ERR=None, grid_params=[], name="$G^R$", interactive_mode=True, save_figures_data=True,
+					 save_G=True, comp_grid_params=[], non_uniform_grid=False, inv_sym=False, mu=1, nu=1):
 	"""
-	Compute a GfReFreq object or a BlockGf containing GfReFreq objects from a Matsubara input Green function using the program OmegaMaxEnt.
-	For more details, see the OmegaMaxEnt-TRIQS interface documentation and the OmegaMaxEnt user guide at
-	https://www.physique.usherbrooke.ca/MaxEnt/index.php/User_Guide.
+	Compute a GfReFreq object or a BlockGf containing GfReFreq objects from a Matsubara input Green function using the
+	program OmegaMaxEnt. For more details, see the OmegaMaxEnt-TRIQS interface documentation and the OmegaMaxEnt
+	user guide at https://www.physique.usherbrooke.ca/MaxEnt/index.php/User_Guide.
 
 	Parameters:
 	-----------
@@ -79,7 +79,8 @@ def compute_GfReFreq(G, ERR=None, grid_params=[], name="$G^R(\omega)$", interact
 		For a non-diagonal covariance, see the interface documentation or the OmegaMaxEnt User Guide.
 
 	grid_params:	Optional list of the form [omega_min, omega_step, omega_max].
-			Defines the real frequency grid of the output Green function. If empty, the output grid is set by OmegaMaxEnt.
+			Defines the real frequency grid of the output Green function. If empty, the output grid is set by
+			OmegaMaxEnt.
 
 	name:	Optional string.
 		Name parameter of the returned GfReFreq object
@@ -94,21 +95,25 @@ def compute_GfReFreq(G, ERR=None, grid_params=[], name="$G^R(\omega)$", interact
 	save_G:		Optional boolean.
 			By default, the result is save in hdf5 format in file G_Re_Freq.h5.
 
-	comp_grid_params:	Optional list of the form [omega_step] or [omega_step, spectrum_width] or [omega_step, spectrum_width, spectrum_center].
+	comp_grid_params:	Optional list of the form [omega_step] or [omega_step, spectrum_width] or
+				[omega_step, spectrum_width, spectrum_center].
 				Grid parameters used in the computation.
-				omega_step is the frequency step used in the main spectral region, namely, the part of the grid where most of the spectral weight is located.
+				omega_step is the frequency step used in the main spectral region, namely, the part of the grid where
+				most of the spectral weight is located.
 				spectrum_width is the width of the main spectral region (typically between 2 and 4 standard deviations).
 				spectrum_center is the center of the main spectral region.
 				omega_step and spectrum_width are ignored if not positive.
 
-	non_uniform_grid:	Optional boolean. Tells OmegaMaxEnt to use a non-uniform grid in the main spectral region for the computation. This will accelerate
-				the calculation if the spectrum has a peak at zero frequency with a width much smaller than the total width of the spectrum.
+	non_uniform_grid:	Optional boolean. Tells OmegaMaxEnt to use a non-uniform grid in the main spectral region for
+				the computation. This will accelerate the calculation if the spectrum has a peak at zero frequency with
+				a width much smaller than the total width of the spectrum.
 
 	inv_sym:	Optional boolean.
-			If G is a matrix or a BlockGf, set inv_sym to True if G[i,j]=G[j,i]. This simplifies the calculation of the off diagonal elements.
+			If G is a matrix or a BlockGf, set inv_sym to True if G[i,j]=G[j,i]. This simplifies the calculation of the
+			off diagonal elements.
 
-	mu, nu:		Optional parameters involved in the calculation of off-diagonal elements of matrix-valued Green functions.
-			See appendix C of the OmegaMaxEnt user guide for more details.
+	mu, nu:		Optional parameters involved in the calculation of off-diagonal elements of matrix-valued Green
+			functions. See appendix C of the OmegaMaxEnt user guide for more details.
 	"""
 
 	if not isinstance(G,Gf) and not isinstance(G,GfImFreq) and not isinstance(G,GfImTime) and not isinstance(G,BlockGf):
@@ -154,7 +159,7 @@ def compute_GfReFreq(G, ERR=None, grid_params=[], name="$G^R(\omega)$", interact
 	return GR
 
 
-def compute_matrix_GfReFreq(G, grid_params=[], inv_sym=False, mu=1, nu=1, interactive_mode=True, save_figures_data=False, name="$G^R(\omega)$", comp_grid_params=[], non_uniform_grid=False):
+def compute_matrix_GfReFreq(G, grid_params=[], inv_sym=False, mu=1, nu=1, interactive_mode=True, save_figures_data=False, name="$G^R$", comp_grid_params=[], non_uniform_grid=False):
 	"""
 	Used by compute_GfReFreq() to compute a matrix-valued GfReFreq from a matrix-valued Matsubara function G.
 	"""
@@ -234,7 +239,7 @@ def compute_matrix_GfReFreq(G, grid_params=[], inv_sym=False, mu=1, nu=1, intera
 	return GM
 
 
-def compute_scalar_GfReFreq(G, ERR=None, grid_params=[], name="$G^R(\omega)$", interactive_mode=True, save_figures_data=True, comp_grid_params=[], non_uniform_grid=False):
+def compute_scalar_GfReFreq(G, ERR=None, grid_params=[], name="$G^R$", interactive_mode=True, save_figures_data=True, comp_grid_params=[], non_uniform_grid=False):
 	"""
 	Used by compute_GfReFreq() and compute_matrix_GfReFreq() to compute a scalar GfReFreq object from a scalar Matsubara function G.
 	"""

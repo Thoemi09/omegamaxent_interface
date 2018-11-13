@@ -20,9 +20,7 @@ OmegaMaxEnt_TRIQS: Simons Foundation
 Citations
 ---------
 
-If you use OmegaMaxEnt_TRIQS in published work, please cite the following papers: [#triqs]_ for TRIQS, [#OME]_ for :math:`\Omega MaxEnt` and [#AuxME]_ for the analytic continuation of matrix-valued Matsubara functions.
-
-.. [#triqs] `O. Parcollet, M. Ferrero, T. Ayral, H. Hafermann, I. Krivenko, L. Messio, and P. Seth, Comp. Phys. Comm. 196, 398-415 (2015) <http://dx.doi.org/10.1016/j.cpc.2015.04.023>`_
+If you use OmegaMaxEnt_TRIQS in published work, please cite the following papers: [#OME]_ for :math:`\Omega MaxEnt` and [#AuxME]_ for the analytic continuation of matrix-valued Matsubara functions.
 
 .. [#OME] `D.Bergeron and A.-M.S. Tremblay. Phys. Rev. E, 94:023303, 2016 <https://journals.aps.org/pre/abstract/10.1103/PhysRevE.94.023303>`_
 

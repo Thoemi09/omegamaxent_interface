@@ -25,7 +25,7 @@ Obtain the retarded Green's function
 
 Whether you have a scalar-, a matrix-valued or a block Green's function, the real frequency Green's function is obtained with the function **compute_GfReFreq()**, which takes an object of type Gf, GfImFreq, GfImTime, or a BlockGf containing objects of one of those types, and returns an object of type GfReFreq or a BlockGf of GfReFreq objects. The function signature is::
 
-    compute_GfReFreq(G, ERR=None, grid_params=[], name="$G^R(\omega)$", interactive_mode=True,
+    compute_GfReFreq(G, ERR=None, grid_params=[], name="$G^R$", interactive_mode=True,
                      save_figures_data=True, save_G=True, comp_grid_params=[], non_uniform_grid=False,
                      inv_sym=False, mu=1, nu=1)
 
