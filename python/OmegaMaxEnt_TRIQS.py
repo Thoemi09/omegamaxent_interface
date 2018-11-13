@@ -341,7 +341,7 @@ def compute_scalar_GfReFreq(G, ERR=None, grid_params=[], name="$G^R(\omega)$", i
 			print "compute_scalar_GfReFreq(): provided error array does not have the same size as the data."
 			return 0
 		if ERR.shape[1]>ERR.shape[0]:
-			ERR=ERR.tanspose()
+			ERR=ERR.transpose()
 		if not im_t:
 			error_array=np.concatenate((wn,ERR),axis=1)
 		else:

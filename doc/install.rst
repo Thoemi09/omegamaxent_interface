@@ -47,7 +47,7 @@ you can pass the following options to CMake:
     +--------------------------------------------------------------+--------------------------------------------------+
     | Options                                                      | Syntax                                           |
     +==============================================================+==================================================+
-    | Specify an installation path other than path_to_triqs        | -DCMAKE_INSTALL_PREFIX=maxent_path               |
+    | Specify an installation path other than path_to_triqs        | -DCMAKE_INSTALL_PREFIX=my_maxent_path            |
     +--------------------------------------------------------------+--------------------------------------------------+
     | Build the documentation locally                              | -DBuild_Documentation=ON                         |
     +--------------------------------------------------------------+--------------------------------------------------+
