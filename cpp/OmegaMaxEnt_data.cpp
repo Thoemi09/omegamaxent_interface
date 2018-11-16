@@ -16,7 +16,7 @@
  
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 
 #include "OmegaMaxEnt_data.h"
 #include <cstring>
@@ -105,8 +105,10 @@ OmegaMaxEnt_data::~OmegaMaxEnt_data()
 	graph_2D::figs_ind_file.close();
 }
 
-void OmegaMaxEnt_data::loop_run()
+int OmegaMaxEnt_data::loop_run()
 {
+	init_params();
+	
 	struct stat file_stat;
 	char continue_exec;
 	string buf;
@@ -115,9 +117,7 @@ void OmegaMaxEnt_data::loop_run()
 	compute_P_alpha_G=false;
 	gaussian_grid_density=false;
 	uniform_grid=false;
-	compute_Pade=false;
-	ind_noise=0;
-	N_params_noise=0;
+	success=1;
 	
 	alpha_save_max=DBL_MIN;
 	alpha_save_min=DBL_MIN;
@@ -468,13 +468,13 @@ void OmegaMaxEnt_data::loop_run()
 					}
 				}
 				
-				
 				double pow_alpha0=log10(alpha0), pow_alpha_min=log10(alpha_min);
-				if (alpha_min<alpha0)
-					Nalpha_max=(pow_alpha0-pow_alpha_min)/pow_alpha_step_min;
-				else
-					Nalpha_max=0;
-				
+			
+			//	if (alpha_min<alpha0)
+			//		Nalpha_max=(pow_alpha0-pow_alpha_min)/pow_alpha_step_min;
+			//	else
+			//		Nalpha_max=10;
+			
 				if (!alpha_opt_max_in.size())
 					alpha_opt_max=alpha0;
 				
@@ -620,7 +620,7 @@ void OmegaMaxEnt_data::loop_run()
 				if (pow_alpha_min<=pow_alpha)
 					Nalpha_max=(pow_alpha-pow_alpha_min)/pow_alpha_step_min;
 				else
-					Nalpha_max=0;
+					Nalpha_max=10;
 				if (!Nalpha_in.size()) Nalpha=Nalpha_max;
 				
 				int Nalpha_new=ind_alpha_vec+Nalpha;
@@ -746,6 +746,7 @@ void OmegaMaxEnt_data::loop_run()
 					
 					double xc, yc, x1, y1;
 					
+					vec cfs_poly(2);
 					for (j=ind_curv_start; j<=ind_curv_end; j++)
 					{
 						jmin=j-1;
@@ -778,7 +779,15 @@ void OmegaMaxEnt_data::loop_run()
 						x1=fs*lalpha(j);
 						y1=lchi2(j);
 						
-						dlchi2_lalpha(j-ind_curv_start)=(xc-x1)/(y1-yc);
+						if (xc==xc && yc==yc) dlchi2_lalpha(j-ind_curv_start)=(xc-x1)/(y1-yc);
+						else
+						{
+							
+							if (polyfit(fs*lalpha.rows(jmin,jmax), lchi2.rows(jmin,jmax), 1, 0.5*fs*(lalpha(jmin)+lalpha(jmax)), cfs_poly))
+								dlchi2_lalpha(j-ind_curv_start)=cfs_poly(0);
+							else
+								dlchi2_lalpha(j-ind_curv_start)=0;
+						}
 					 
 						//x1=fs*lalpha(j-1)-xc;
 						//y1=lchi2(j-1)-yc;
@@ -790,12 +799,12 @@ void OmegaMaxEnt_data::loop_run()
 						//total_curv_lchi2_lalpha(j-1)=sum(sign(curv_lchi2_lalpha.rows(0,j-1)) % angle.rows(0,j-1));
 					}
 					
-					dlchi2_lalpha_max=dlchi2_lalpha.max();
+					uword ind_dlchi2_lalpha_max;
+					dlchi2_lalpha_max=dlchi2_lalpha.max(ind_dlchi2_lalpha_max);
 					dlchi2_lalpha_min=dlchi2_lalpha(Ncurv-1);
 					
-					uword N_av=5;
+					int N_av=5;
 					double dlchi2_lalpha_min_av=sum(dlchi2_lalpha.rows(Ncurv-N_av,Ncurv-1))/N_av;
-					
 					
 					int ind_min_curv=0;
 					if (alpha_opt_max_in.size())
@@ -803,6 +812,12 @@ void OmegaMaxEnt_data::loop_run()
 						while (alpha_vec(ind_min_curv)>alpha_opt_max && ind_min_curv<ind_alpha_vec-1)
 							ind_min_curv++;
 					}
+					else
+					{
+						ind_min_curv=ind_dlchi2_lalpha_max+ind_curv_start;
+					}
+					
+				//	cout<<"alpha_opt_max: "<<alpha_vec(ind_min_curv)<<endl;
 					
 					ind_min_curv=ind_min_curv-ind_curv_start;
 					if (ind_min_curv<0) ind_min_curv=0;
@@ -1511,6 +1526,9 @@ void OmegaMaxEnt_data::loop_run()
 								
 								xlims[0]=SC-3*SW;
 								xlims[1]=SC+3*SW;
+								
+								if (xlims[0]<w_out(0)) xlims[0]=w_out(0);
+								if (xlims[1]>w_out(Nw_out-1)) xlims[1]=w_out(Nw_out-1);
 						
 								char title_G_Re_w[]="Retarded Green function in frequency";
 								char attrG1[]="'-',color='b'";
@@ -1645,17 +1663,21 @@ void OmegaMaxEnt_data::loop_run()
 								}
 							}
 						}
-						
+						success=0;
 					}
-					else if (alpha<=alpha_min)
+					else if (alpha<=alpha_min && !alpha_min_in.size())
 					{
 						cout<<"minimum value of alpha reached but optimal spectrum has not been found. Reducing alpha_min by a factor "<<f_alpha_min<<".\n";
 						alpha_min=alpha_min/f_alpha_min;
 						alpha_min_too_high=true;
 						cout<<"new value of alpha_min: "<<alpha_min<<endl;
 					}
+					else
+					{
+						cout<<"optimal spectrum has not been found. The real frequency grid might not be adapted to the spectrum\n";
+					}
 					
-					if (alpha<=alpha_min && dlchi2_lalpha_min_av/dlchi2_lalpha_max>RMAX_dlchi2_lalpha)
+					if (alpha<=alpha_min && dlchi2_lalpha_min_av/dlchi2_lalpha_max>RMAX_dlchi2_lalpha && !alpha_min_in.size())
 					{
 						cout<<"The minimum value of alpha may not be small enough. Reducing alpha_min by a factor "<<f_alpha_min<<".\n";
 						alpha_min=alpha_min/f_alpha_min;
@@ -1770,6 +1792,8 @@ void OmegaMaxEnt_data::loop_run()
 		}
 	}
 	 */
+	
+	return success;
 }
 
 void OmegaMaxEnt_data::remove_files()
@@ -3474,7 +3498,7 @@ void OmegaMaxEnt_data::compute_Re_chi_omega(vec Ap)
 
 void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 {
-	cout<<"computing real part of the real-frequency Green function...\n";
+	cout<<"computing real part of the retarded Green function...\n";
 	
 	bool compute_G_Re_w_KK=false;
 	
@@ -3531,7 +3555,7 @@ void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 	vec wKK=w_dense.rows(jKK_l,jKK_r);
 	
 	int NwKK=jKK_r-jKK_l+1;
-//	cout<<"w_dense(jKK_l)	w_dense(jKK_r): "<<setw(20)<<w_dense(jKK_l)<<w_dense(jKK_r)<<endl;
+//	cout<<"w_KK_min, w_KK_max: "<<setw(20)<<w_dense(jKK_l)<<w_dense(jKK_r)<<endl;
 //	cout<<"NwKK: "<<NwKK<<endl;
 	
 	void *par[5];
@@ -3683,6 +3707,8 @@ void OmegaMaxEnt_data::compute_Re_G_omega(vec Ap)
 	remove(file_name_str.c_str());
 	M_save.save(file_name_str,raw_ascii);
 	
+	cout<<"real part of the retarded Green function computed\n";
+	
 /*
 	vec Atmp=-Gi_Re_w/PI;
 	if (!Nw_dense%2)
@@ -3766,6 +3792,13 @@ void OmegaMaxEnt_data::set_output_frequency_grid(vec extr_w)
 	
 	dw_dense=dw_min;
 	w_range=R_SW_G_Re_w_range*SW;
+	double w_range_tmp;
+	if (output_grid_params_in.size() && output_grid_params(0)<0 && output_grid_params(2)>0 && output_grid_params(0)>extr_w(0) && output_grid_params(2)<extr_w(1))
+	{
+		w_range_tmp=-output_grid_params(0);
+		if (output_grid_params(2)>w_range_tmp) w_range_tmp=output_grid_params(2);
+	}
+	if (w_range_tmp>w_range) w_range=w_range_tmp;
 	double log2_Nw_dense=ceil(log2(w_range/dw_dense));
 	int Nw_p=pow(2,log2_Nw_dense-1);
 	vec w_dense_p=linspace<vec>(0,Nw_p,Nw_p+1)*dw_dense;
@@ -11364,7 +11397,7 @@ void OmegaMaxEnt_data::minimize()
 			AS.rows(ind_An)=Amin.rows(ind_An);
 		S=-sum(AS % dwS % log(AS/default_model))/(2*PI);
 		
-		if (abs((chi2(0)-chi2prec)/chi2prec)>diff_chi2_max && alpha<alpha_prec && pow_alpha_step>2*pow_alpha_step_min)
+		if (chi2(0)/chi2prec<R_chi2_min && alpha<alpha_prec && pow_alpha_step>=2*pow_alpha_step_min)
 			pow_alpha_step=pow_alpha_step/2;
 		
 		if ((chi2(0)<chi2prec && alpha<=alpha_prec) || (chi2(0)>chi2prec && alpha>alpha_prec) || pow_alpha==pow_alpha0)
@@ -11667,8 +11700,10 @@ void OmegaMaxEnt_data::minimize()
 					else if (!alpha_too_small)
 					{
 						alpha_too_small=true;
-						cout<<"warning: minimum value of alpha seems too small.\n";
-						cout<<"alpha= "<<alpha<<endl;
+						if (alpha_min_in.size())
+						{
+							cout<<"warning: minimum value of alpha seems too small.\n";
+						}
 					}
 				}
 			}
@@ -11868,7 +11903,7 @@ void OmegaMaxEnt_data::minimize_increase_alpha()
 			AS.rows(ind_An)=Amin.rows(ind_An);
 		S=-sum(AS % dwS % log(AS/default_model))/(2*PI);
 		
-		if (abs((chi2(0)-chi2prec)/chi2prec)>diff_chi2_max && alpha<alpha_prec && pow_alpha_step>2*pow_alpha_step_min)
+		if (chi2(0)/chi2prec<R_chi2_min && alpha<alpha_prec && pow_alpha_step>2*pow_alpha_step_min)
 			pow_alpha_step=pow_alpha_step/2;
 		
 		if (alpha>alpha_prec && abs((chi2(0)-chi2prec)/chi2prec)<diff_chi2_min && pow_alpha_step<2*pow_alpha_step_max)
@@ -12119,7 +12154,8 @@ void OmegaMaxEnt_data::minimize_increase_alpha()
 					else if (!alpha_too_small)
 					{
 						alpha_too_small=true;
-						cout<<"warning: minimum value of alpha seems too small.\n";
+						if (alpha_min_in.size())
+							cout<<"warning: minimum value of alpha seems too small.\n";
 					}
 				}
 			}
@@ -17349,11 +17385,14 @@ bool OmegaMaxEnt_data::spline_val(vec x, vec x0, vec coeffs, vec &s)
 				s(j)=a*pow(Dx,3)+b*pow(Dx,2)+c*Dx+d;
 			}
 		}
+/*
 		else
 		{
-			cout<<"spline_val(): the provided position vector has a value outside the boundaries of the spline.\n";
-			return false;
+			cout<<"spline_val() warning: x="<<x(j)<<" outside the boundaries of the spline\n";
+		//	cout<<"spline_val(): the provided position vector has a value outside the boundaries of the spline.\n";
+		//	return false;
 		}
+*/
 	}
 	
 	return true;
@@ -21427,6 +21466,34 @@ bool OmegaMaxEnt_data::load_data_file(mat &data_array, string file_name)
 	}
 }
 
+void OmegaMaxEnt_data::init_params()
+{
+	input_dir.assign("./");
+	boson=false;
+	tau_GF=false;
+	Ginf_finite=false;
+	col_Gr=2;
+	col_Gi=3;
+	col_errGr=2;
+	col_errGi=3;
+	col_Gtau=2;
+	col_errGtau=2;
+	ind_noise=0;
+	N_params_noise=0;
+	non_uniform_grid=false;
+	use_grid_params=false;
+	eval_moments=false;
+	compute_Pade=false;
+	displ_prep_figs=false;
+	displ_adv_prep_figs=false;
+	print_other_params=false;
+	interactive_mode=true;
+	print_alpha=false;
+	show_optimal_alpha_figs=true;
+	show_lowest_alpha_figs=true;
+	show_alpha_curves=true;
+}
+
 bool OmegaMaxEnt_data::load_input_params()
 {
 	SC_set=false;
@@ -21436,6 +21503,7 @@ bool OmegaMaxEnt_data::load_input_params()
 	execute_maxent=true;
 	A_ref_change=false;
 	w_origin_set=false;
+	data_file_loaded=false;
 	
 	ifstream file(input_params_file_name);
 	
@@ -21446,6 +21514,23 @@ bool OmegaMaxEnt_data::load_input_params()
 		string str;
 		cout<<"\nINPUT PARAMETERS:\n";
 		getline(file,str);
+		while (!file.eof() && str.compare(0,Input_files_params[INPUT_DIR].size(),Input_files_params[INPUT_DIR])) getline(file,str);
+		if (!file.eof())
+		{
+			str=str.substr(Input_files_params[INPUT_DIR].size());
+			remove_spaces_ends(str);
+			if (input_dir_in.compare(str)) initialize=true;
+			input_dir_in=str;
+			input_dir=input_dir_in;
+			if (input_dir_in.size())
+			{
+				if (input_dir.back()!='/') input_dir.push_back('/');
+				cout<<Input_files_params[INPUT_DIR]<<" "<<input_dir<<endl;
+			}
+			else
+				input_dir.assign("./");
+		}
+	/*
 		while (!file.eof())
 		{
 			if (str.compare(0,Input_files_params[INPUT_DIR].size(),Input_files_params[INPUT_DIR])==0)
@@ -21465,12 +21550,75 @@ bool OmegaMaxEnt_data::load_input_params()
 			}
 			getline(file,str);
 		}
+	*/
+		file.clear();
+		file.seekg(0);
+		getline(file,str);
+		while (!file.eof() && str.compare(0,data_file_param.size(),data_file_param)) getline(file,str);
+		if (!file.eof())
+		{
+			str=str.substr(data_file_param.size());
+			remove_spaces_ends(str);
+			if (data_file_name_in.compare(str)) initialize=true;
+			data_file_name_in=str;
+			data_file_name=data_file_name_in;
+			if (data_file_name.size())
+			{
+				cout<<data_file_param<<" "<<data_file_name<<endl;
+				data_file_loaded=load_data_file(green_data, data_file_name);
+				if (data_file_loaded)
+					cout<<"data file loaded\n";
+				else
+				{
+					cout<<"unable to load data file "<<data_file_name<<endl;
+					return false;
+				}
+			}
+			else
+			{
+				cout<<"error: parameter \"data file\" empty\n";
+				return false;
+			}
+		}
+	/*
+		while (!file.eof())
+		{
+			//			cout<<str<<endl;
+			if (str.compare(0,data_file_param.size(),data_file_param)==0)
+			{
+				str=str.substr(data_file_param.size());
+				remove_spaces_ends(str);
+				if (data_file_name_in.compare(str)) initialize=true;
+				data_file_name_in=str;
+				data_file_name=data_file_name_in;
+				if (data_file_name.size())
+				{
+					cout<<data_file_param<<" "<<data_file_name<<endl;
+					data_file_loaded=load_data_file(green_data, data_file_name);
+					if (data_file_loaded)
+						cout<<"data file loaded\n";
+					else
+					{
+						cout<<"unable to load data file "<<data_file_name<<endl;
+						return false;
+					}
+				}
+				else
+				{
+					cout<<"error: parameter \"data file\" empty\n";
+					return false;
+				}
+			}
+	 		getline(file,str);
+		}
+	*/
 		file.clear();
 		file.seekg(0);
 		getline(file,str);
 		while (!file.eof())
 		{
 			//			cout<<str<<endl;
+		/*
 			if (str.compare(0,data_file_param.size(),data_file_param)==0)
 			{
 				str=str.substr(data_file_param.size());
@@ -21493,6 +21641,8 @@ bool OmegaMaxEnt_data::load_input_params()
 				}
 			}
 			else if (str.compare(0,Data_params[BOSON].size(),Data_params[BOSON])==0)
+		 */
+			if (str.compare(0,Data_params[BOSON].size(),Data_params[BOSON])==0)
 			{
 				str=str.substr(Data_params[BOSON].size());
 				remove_spaces_ends(str);
@@ -22707,12 +22857,12 @@ bool OmegaMaxEnt_data::load_other_params()
                 if (f_chi2save!=Other_params_fl_default_values[F_CHI2_SAVE] || print_other_params)
                     cout<<Other_params_fl[F_CHI2_SAVE]<<" "<<f_chi2save<<endl;
             }*/
-            else if (str.compare(0,Other_params_fl[DIFF_CHI2_MAX].size(),Other_params_fl[DIFF_CHI2_MAX])==0)
+            else if (str.compare(0,Other_params_fl[R_CHI2_MIN].size(),Other_params_fl[R_CHI2_MIN])==0)
             {
-                str=str.substr(Other_params_fl[DIFF_CHI2_MAX].size());
-                diff_chi2_max=stod(str);
-                if (diff_chi2_max!=Other_params_fl_default_values[DIFF_CHI2_MAX] || print_other_params)
-                    cout<<Other_params_fl[DIFF_CHI2_MAX]<<" "<<diff_chi2_max<<endl;
+                str=str.substr(Other_params_fl[R_CHI2_MIN].size());
+                R_chi2_min=stod(str);
+                if (R_chi2_min!=Other_params_fl_default_values[R_CHI2_MIN] || print_other_params)
+                    cout<<Other_params_fl[R_CHI2_MIN]<<" "<<R_chi2_min<<endl;
             }
             else if (str.compare(0,Other_params_fl[TOL_INT_DA].size(),Other_params_fl[TOL_INT_DA])==0)
             {
@@ -22742,12 +22892,12 @@ bool OmegaMaxEnt_data::load_other_params()
                 if (pow_alpha_step_min!=Other_params_fl_default_values[POW_ALPHA_STEP_MIN] || print_other_params)
                     cout<<Other_params_fl[POW_ALPHA_STEP_MIN]<<" "<<pow_alpha_step_min<<endl;
             }
-            else if (str.compare(0,Other_params_fl[CHI2_ALPHA_SMOOTH_RANGE_2].size(),Other_params_fl[CHI2_ALPHA_SMOOTH_RANGE_2])==0)
+            else if (str.compare(0,Other_params_fl[CHI2_ALPHA_SMOOTH_RANGE].size(),Other_params_fl[CHI2_ALPHA_SMOOTH_RANGE])==0)
             {
-                str=str.substr(Other_params_fl[CHI2_ALPHA_SMOOTH_RANGE_2].size());
+                str=str.substr(Other_params_fl[CHI2_ALPHA_SMOOTH_RANGE].size());
                 chi2_alpha_smooth_range=stod(str);
-                if (chi2_alpha_smooth_range!=Other_params_fl_default_values[CHI2_ALPHA_SMOOTH_RANGE_2] || print_other_params)
-                    cout<<Other_params_fl[CHI2_ALPHA_SMOOTH_RANGE_2]<<" "<<chi2_alpha_smooth_range<<endl;
+                if (chi2_alpha_smooth_range!=Other_params_fl_default_values[CHI2_ALPHA_SMOOTH_RANGE] || print_other_params)
+                    cout<<Other_params_fl[CHI2_ALPHA_SMOOTH_RANGE]<<" "<<chi2_alpha_smooth_range<<endl;
             }
             else if (str.compare(0,Other_params_fl[F_SCALE_LALPHA_LCHI2].size(),Other_params_fl[F_SCALE_LALPHA_LCHI2])==0)
             {
@@ -22996,7 +23146,7 @@ bool OmegaMaxEnt_data::create_default_input_params_file()
         return false;
     }
 	
-	copy_file(input_params_file_name, "./", "./", template_input_params_file_name);
+//	copy_file(input_params_file_name, "./", "./", template_input_params_file_name);
     
     return true;
 }
