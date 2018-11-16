@@ -22,6 +22,7 @@ OmegaMaxEnt_input_params = dict(
     omega_n_trunc="truncation frequency:",
     # INPUT FILES PARAMETERS
     input_dir="input directory:",
+    col_Gi="Im(G) column in data file (default: 3):",
     error_file="error file:",
     cov_re_re="re-re covariance file:",
     cov_im_im="im-im covariance file:",
@@ -30,8 +31,8 @@ OmegaMaxEnt_input_params = dict(
     added_noise="added noise relative error (s1 s2 ...) (default: 0):",
     # FREQUENCY GRID PARAMETERS
     cutoff_omega_n="Matsubara frequency cutoff (in energy units, k_B=1):",
-    SW="spectral function width:",
-    SC="spectral function center:",
+    spectrum_width="spectral function width:",
+    spectrum_center="spectral function center:",
     freq_grid_origin="real frequency grid origin:",
     freq_step="real frequency step:",
     freq_grid="real frequency grid file:",
@@ -80,7 +81,7 @@ OmegaMaxEnt_input_params = dict(
     ref_spectrum="reference spectral function file:")
 
 
-# internal parameters
+# internal parameters (advanced)
 OmegaMaxEnt_other_params = dict(
     Nn_min="Nn_min, minimum number of Matsubara frequencies:",
     Nn_max="Nn_max, maximum number of Matsubara frequencies:",
