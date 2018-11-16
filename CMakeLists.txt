@@ -1,4 +1,9 @@
-cmake_minimum_required (VERSION 2.6)
+# Start configuration
+cmake_minimum_required(VERSION 2.8.12)
+project(omegamaxent_interface CXX)
+if(POLICY CMP0074)
+  cmake_policy(SET CMP0074 NEW)
+endif()
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
@@ -34,9 +39,9 @@ if(Build_Documentation)
   find_package(MathJax REQUIRED)
   message(STATUS "Detected MathJax at ${MATHJAX_PATH}")
   if(NOT TRIQS_WITH_DOCUMENTATION)
-    message("Error: TRIQS library has not been compiled with its documentation")
+    message(WARNING " TRIQS library has not been compiled with its documentation!\n Cannot build documentation!")
   else()
-    message("building documentation")
+    message(STATUS "Documentation Build enabled")
     add_subdirectory(doc)
   endif()
 endif()
