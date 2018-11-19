@@ -4,12 +4,12 @@ data_str = "data file:"
 err_str = "error file:"
 boson_str = "bosonic data (yes/[no]):"
 time_str = "imaginary time data (yes/[no]):"
-temp_str = "temperature (in energy units, k_B=1):"
+# temp_str = "temperature (in energy units, k_B=1):"
 
 # optional parameters
 OmegaMaxEnt_input_params = dict(
-    # OPTIONAL PREPROCESSING TIME PARAMETERS
-    # DATA PARAMETERS
+# OPTIONAL PREPROCESSING TIME PARAMETERS
+# DATA PARAMETERS
     G_inf_finite="finite value at infinite frequency (yes/[no]):",
     G_inf="value at infinite frequency:",
     norm="norm of spectral function:",
@@ -20,7 +20,7 @@ OmegaMaxEnt_input_params = dict(
     M3="3rd moment:",
     errM3="3rd moment error:",
     omega_n_trunc="truncation frequency:",
-    # INPUT FILES PARAMETERS
+# INPUT FILES PARAMETERS
     input_dir="input directory:",
     col_Gi="Im(G) column in data file (default: 3):",
     error_file="error file:",
@@ -29,7 +29,7 @@ OmegaMaxEnt_input_params = dict(
     cov_re_im="re-im covariance file:",
     cov_tau="imaginary time covariance file:",
     added_noise="added noise relative error (s1 s2 ...) (default: 0):",
-    # FREQUENCY GRID PARAMETERS
+# FREQUENCY GRID PARAMETERS
     cutoff_omega_n="Matsubara frequency cutoff (in energy units, k_B=1):",
     spectrum_width="spectral function width:",
     spectrum_center="spectral function center:",
@@ -37,10 +37,10 @@ OmegaMaxEnt_input_params = dict(
     freq_step="real frequency step:",
     freq_grid="real frequency grid file:",
     non_uniform_grid="use non uniform grid in main spectral range (yes/[no]):",
-    parameterized_grid="use parameterized real frequency grid (yes/[no]):",
+    use_parameterized_grid="use parameterized real frequency grid (yes/[no]):",
     parameterized_grid_params="grid parameters (w_0 dw_0 w_1 dw_1 ... w_{N-1} dw_{N-1} w_N):",
-    grid_params="output real frequency grid parameters (w_min dw w_max):",
-    # COMPUTATION OPTIONS
+    output_grid_params="output real frequency grid parameters (w_min dw w_max):",
+# COMPUTATION OPTIONS
     eval_moments="evaluate moments (yes/[no]):",
     maximum_moment="maximum moment:",
     def_model_center="default model center (default: 1st moment):",
@@ -51,29 +51,29 @@ OmegaMaxEnt_input_params = dict(
     compute_Pade="compute Pade result (yes/[no]):",
     n_freq_Pade="number of frequencies for Pade:",
     eta_Pade="imaginary part of frequency in Pade:",
-    # PREPROCESSING EXECUTION OPTIONS
+# PREPROCESSING EXECUTION OPTIONS
     preprocess_only="preprocess only (yes/[no]):",
     displ_preproc_figs="display preprocessing figures (yes/[no]):",
     displ_adv_preproc_figs="display advanced preprocessing figures (yes/[no]):",
     print_other_params="print other parameters (yes/[no]):",
-    # OPTIONAL MINIMIZATION TIME PARAMETERS
-    # OUTPUT FILES PARAMETERS
+# OPTIONAL MINIMIZATION TIME PARAMETERS
+# OUTPUT FILES PARAMETERS
     output_dir="output directory:",
     output_fname_suffix="output file names suffix:",
     alpha_max_saved="maximum alpha for which results are saved:",
     alpha_min_saved="minimum alpha for which results are saved:",
     spectrum_sample_freq="spectral function sample frequencies (w_1 w_2 ... w_N):",
-    # COMPUTATION PARAMETERS
+# COMPUTATION PARAMETERS
     alpha_init="initial value of alpha:",
     alpha_min="minimum value of alpha:",
     alpha_opt_max="maximum optimal alpha:",
     alpha_opt_min="minimum optimal alpha:",
-    # MINIMIZATION EXECUTION OPTIONS
+# MINIMIZATION EXECUTION OPTIONS
     n_alpha_values="number of values of alpha computed in one execution:",
     init_maxent="initialize maxent (yes/[no]):",
     init_preproc="initialize preprocessing (yes/[no]):",
     interactive_mode="interactive mode ([yes]/no):",
-    # DISPLAY OPTIONS
+# DISPLAY OPTIONS
     print_result="print results at each value of alpha (yes/[no]):",
     displ_alpha_opt_figs="show optimal alpha figures ([yes]/no):",
     displ_alpha_min_figs="show lowest alpha figures ([yes]/no):",
@@ -122,7 +122,7 @@ OmegaMaxEnt_other_params = dict(
     pow_alpha_step_init="pow_alpha_step_init, initial value of the step in log_10(alpha):",
     pow_alpha_step_min="pow_alpha_step_min, minimum value of the step in log_10(alpha):",
     chi2_alpha_smooth_range="chi2_alpha_smooth_range, chi2 vs alpha smoothing range in log10 scale:",
-    f_scale_lalpha_lchi2="f_scale_lalpha_lchi2, log(alpha) scale factor with respect to log(chi2) in the curvature calculation:",
+    gamma="f_scale_lalpha_lchi2, log(alpha) scale factor with respect to log(chi2) in the curvature calculation:",
     FNfitTauW="FNfitTauW, factor to determine the number of values of tau in the polynomial fit:",
     std_norm_peak_max="std_norm_peak_max, relative tolerance for standard deviation of low frequency peak weight:",
     varM2_peak_max="varM2_peak_max, relative tolerance on low frequency peak variance:",

@@ -56,12 +56,12 @@ def compute_GfReFreq(G, **kwa):
 	G:	Gf, GfImFreq, GfImTime or BlockGf object.
 		Input Matsubara Green function.
 
-	ERR:	Optional numpy array.
-		Standard deviation if G is scalar or has a single element.
+	ERR:	Optional real or complex numpy array.
+		Standard deviation if G is scalar or a 1x1 matrix.
 		ERR must have the same shape as the G.data.
-		For a non-diagonal covariance, see the interface documentation or the OmegaMaxEnt User Guide.
+		For a non-diagonal covariance, see the interface user guide or the OmegaMaxEnt user guide.
 
-	grid_params:	Optional list of the form [omega_min, omega_step, omega_max].
+	output_grid_params:	Optional list of the form [omega_min, omega_step, omega_max].
 			Defines the real frequency grid of the output Green function. If empty, the output grid is set by
 			OmegaMaxEnt.
 
@@ -90,11 +90,6 @@ def compute_GfReFreq(G, **kwa):
 				the computation. This will accelerate the calculation if the spectrum has a peak at zero frequency with
 				a width much smaller than the total width of the spectrum.
 
-	inv_sym_time:	Optional boolean.
-			For bosonic Green's function: if G(i\omega_n)=G(-i\omega_n), i.e. G(i\omega_n) is purely real,
-			i.e. G(tau)=G(-tau), i.e. G(beta-tau)=G(tau), set inv_sym_time=True. The MaxEnt calculation will then be
-			performed over positive real frequencies only.
-
 	inv_sym:	Optional boolean.
 			If G is a matrix or a BlockGf, set inv_sym to True if G[i,j]=G[j,i]. This simplifies the calculation of the
 			off diagonal elements.
@@ -102,7 +97,13 @@ def compute_GfReFreq(G, **kwa):
 	mu, nu:		Optional parameters involved in the calculation of off-diagonal elements of matrix-valued Green
 			functions. See appendix C of the OmegaMaxEnt user guide for more details.
 
-	The other parameters are defined in OmegaMaxEnt_parameters.py and are described in the OmegaMaxEnt user guide
+	inv_sym_time:	Optional boolean.
+			For bosonic Green's function: if G(i\omega_n)=G(-i\omega_n), i.e. G(i\omega_n) is purely real,
+			i.e. G(tau)=G(-tau), i.e. G(beta-tau)=G(tau), set inv_sym_time=True. The MaxEnt calculation will then be
+			performed over positive real frequencies only.
+
+	The other parameters are defined in the dictionaries OmegaMaxEnt_input_params and OmegaMaxEnt_other_params
+	(defined in file OmegaMaxEnt_parameters.py) and are described in the OmegaMaxEnt user guide
 	(https://www.physique.usherbrooke.ca/MaxEnt/index.php/User_Guide).
 	"""
 
@@ -119,9 +120,9 @@ def compute_GfReFreq(G, **kwa):
 	name = "$G^R$"
 	if 'name' in kwa:
 		name = kwa['name']
-	grid_params = []
-	if 'grid_params' in kwa:
-		grid_params = kwa['grid_params']
+	output_grid_params = []
+	if 'output_grid_params' in kwa:
+		output_grid_params = kwa['output_grid_params']
 
 	if not isinstance(G, BlockGf):
 		if len(G.target_shape)==2:
@@ -159,11 +160,11 @@ def compute_GfReFreq(G, **kwa):
 			if not isinstance(Gtmp, GfReFreq):
 				return None
 			list_G.append(Gtmp)
-			if len(grid_params) != 3:
+			if len(output_grid_params) != 3:
 				n_freq = len(Gtmp.mesh)
 				step = (Gtmp.mesh.omega_max - Gtmp.mesh.omega_min) / (n_freq - 1)
-				grid_params = [Gtmp.mesh.omega_min, step, Gtmp.mesh.omega_max]
-				kwa.update(dict(grid_params=grid_params))
+				output_grid_params = [Gtmp.mesh.omega_min, step, Gtmp.mesh.omega_max]
+				kwa.update(dict(output_grid_params=output_grid_params))
 		GR = BlockGf(name_list = list(G.indices), block_list = list_G, name=name)
 
 
@@ -197,12 +198,12 @@ def compute_matrix_GfReFreq(G, **kwa):
 		print "compute_matrix_GfReFreq(): row and column indices must the same"
 		return None
 
-	grid_params = []
-	if 'grid_params' in kwa:
-		if len(kwa['grid_params'])==3:
-			grid_params = kwa['grid_params']
+	output_grid_params = []
+	if 'output_grid_params' in kwa:
+		if len(kwa['output_grid_params'])==3:
+			output_grid_params = kwa['output_grid_params']
 		else:
-			print "compute_matrix_GfReFreq() warning: 'grid_params' parameter must contain three elements"
+			print "compute_matrix_GfReFreq() warning: 'output_grid_params' parameter must contain three elements"
 	inv_sym = False
 	if 'inv_sym' in kwa:
 		if isinstance(kwa['inv_sym'],bool):
@@ -220,8 +221,8 @@ def compute_matrix_GfReFreq(G, **kwa):
 		name=kwa['name']
 		kwa['name']=''
 	save_G = False
-	if 'save_G' in kwa:
-		save_G=kwa['save_G']
+	# if 'save_G' in kwa:
+	# 	save_G=kwa['save_G']
 
 	kwa.update(dict(save_figures_data = False))
 
@@ -257,9 +258,6 @@ def compute_matrix_GfReFreq(G, **kwa):
 		print "compute_matrix_GfReFreq() warning: 'cov_tau' parameter is applicable only to scalar Green's functions. Parameter discarded."
 		del kwa['cov_tau']
 
-	# if not path.exists(params_file):
-	# 	create_params_file(False)
-
 	ind =G.indices[0]
 
 	Gtmp=compute_scalar_GfReFreq(G[ind[0],ind[0]], **kwa)
@@ -269,10 +267,10 @@ def compute_matrix_GfReFreq(G, **kwa):
 
 	n_freq = len(Gtmp.mesh)
 
-	if len(grid_params)!=3:
+	if len(output_grid_params)!=3:
 		step=(Gtmp.mesh.omega_max-Gtmp.mesh.omega_min)/(n_freq-1)
-		grid_params = [Gtmp.mesh.omega_min, step, Gtmp.mesh.omega_max]
-		kwa.update(dict(grid_params=grid_params))
+		output_grid_params = [Gtmp.mesh.omega_min, step, Gtmp.mesh.omega_max]
+		kwa.update(dict(output_grid_params=output_grid_params))
 
 	GM=GfReFreq(indices=G.indices, window = (Gtmp.mesh.omega_min, Gtmp.mesh.omega_max), n_points = n_freq, name=name)
 
@@ -332,12 +330,9 @@ def compute_matrix_GfReFreq(G, **kwa):
 					with HA("G_Re_Freq_"+ind[l]+"_"+ind[m]+".h5", 'w') as A:
 						A['G'] = GM[ind[l],ind[m]]
 
-	#print "matrix continuation done"
-
 	return GM
 
 
-#def compute_scalar_GfReFreq(G, ERR=None, grid_params=[], name="$G^R$", interactive_mode=True, save_figures_data=True, comp_grid_params=[], non_uniform_grid=False):
 def compute_scalar_GfReFreq(G, **kwa):
 	"""
 	Used by compute_GfReFreq() and compute_matrix_GfReFreq() to compute a scalar GfReFreq object from a scalar Matsubara function G.
@@ -416,51 +411,6 @@ def compute_scalar_GfReFreq(G, **kwa):
 			pf.write(str_tmp)
 		pf.close()
 
-	# pf=open(params_file,"r")
-	# str_tmp=pf.read()
-	# cpf=open(params_file_copy,"w")
-	# cpf.write(str_tmp)
-	# pf.close()
-	# cpf.close()
-	#
-	# cpf=open(params_file_copy,"r")
-	# pf = open(params_file, "w")
-	# for str_tmp in cpf:
-	# 	if str_tmp[0:len(data_str)]==data_str:
-	# 		str_tmp = data_str + file_name + '\n'
-	# 	elif str_tmp[0:len(boson_str)]==boson_str:
-	# 		if bosonic:
-	# 			str_tmp = boson_str + "yes" + '\n'
-	# 		else:
-	# 			str_tmp = boson_str + '\n'
-	# 	elif str_tmp[0:len(time_str)]==time_str:
-	# 		if im_t:
-	# 			str_tmp = time_str + "yes" + '\n'
-	# 		else:
-	# 			str_tmp = time_str + '\n'
-	# 	elif  str_tmp[0:len(grid_params_str)]==grid_params_str:
-	# 		if len(grid_params)==3:
-	# 			str_tmp=grid_params_str+str(grid_params[0])+" "+str(grid_params[1])+" "+str(grid_params[2])+'\n'
-	# 		else:
-	# 			str_tmp = grid_params_str+'\n'
-	# 	elif error_provided and str_tmp[0:len(err_str)]==err_str:
-	# 		str_tmp=err_str+error_file_name+'\n'
-	# 	elif len(comp_grid_params)>0 and str_tmp[0:len(dw_str)]==dw_str and comp_grid_params[0]>0:
-	# 		str_tmp =dw_str+str(comp_grid_params[0])+'\n'
-	# 	elif len(comp_grid_params)>1 and str_tmp[0:len(SW_str)]==SW_str and comp_grid_params[1]>0:
-	# 		str_tmp =SW_str+str(comp_grid_params[1])+'\n'
-	# 	elif len(comp_grid_params)>2 and str_tmp[0:len(SC_str)]==SC_str:
-	# 		str_tmp =SC_str+str(comp_grid_params[2])+'\n'
-	# 	elif non_uniform_grid and str_tmp[0:len(nu_grid_str)]==nu_grid_str:
-	# 		str_tmp = nu_grid_str + "yes" + '\n'
-	# 	elif not interactive_mode and str_tmp[0:len(inter_m_str)]==inter_m_str:
-	# 		str_tmp=inter_m_str+"no"+'\n'
-	# 	pf.write(str_tmp)
-	# cpf.close()
-	# pf.close()
-	#
-	# os.remove(params_file_copy)
-
 	Gr = G.data.real
 	Gi = G.data.imag
 
@@ -490,13 +440,30 @@ def compute_scalar_GfReFreq(G, **kwa):
 		if dim_ERR.max()!=n_points:
 			print "compute_scalar_GfReFreq(): provided error array does not have the same size as the data."
 			return None
-		if ERR.shape[1]>ERR.shape[0]:
-			ERR=ERR.transpose()
-		if not im_t:
-			error_array=np.concatenate((wn,ERR),axis=1)
+		ERRtmp=ERR
+		if len(ERR.shape)==2 and ERR.shape[1]>ERR.shape[0]:
+			ERRtmp=ERRtmp.transpose()
 		else:
-			error_array=np.concatenate((tau,ERR),axis=1)
+			ERRtmp=np.array([ERR.real,ERR.imag])
+			ERRtmp = ERRtmp.transpose()
+		if not im_t:
+			error_array=np.concatenate((wn,ERRtmp),axis=1)
+		else:
+			error_array=np.concatenate((tau,ERRtmp),axis=1)
 		np.savetxt(error_file_name,error_array)
+
+	# if error_provided:
+	# 	dim_ERR=np.array(ERR.shape)
+	# 	if dim_ERR.max()!=n_points:
+	# 		print "compute_scalar_GfReFreq(): provided error array does not have the same size as the data."
+	# 		return None
+	# 	if ERR.shape[1]>ERR.shape[0]:
+	# 		ERR=ERR.transpose()
+	# 	if not im_t:
+	# 		error_array=np.concatenate((wn,ERR),axis=1)
+	# 	else:
+	# 		error_array=np.concatenate((tau,ERR),axis=1)
+	# 	np.savetxt(error_file_name,error_array)
 
 	pf = open(params_file, "w")
 	str_tmp = data_str + file_name + '\n'
@@ -566,26 +533,11 @@ def create_params_file(overwrite=True):
 	cmd = [OME_cmd, "-ni"]
 
 	if not path.exists(params_file) or overwrite:
-		if not path.exists(template_params_file):
-			if path.exists(params_file):
-				os.remove(params_file)
-			sp.call(cmd)
-		tf=open(template_params_file,"r")
-		uf=open(params_file,"w")
-		uf.write(top_section_line+"\n")
-		uf.write(data_str+"\n")
-		uf.write(boson_str + "\n")
-		uf.write(time_str + "\n")
-		uf.write(temp_str + "\n")
-		uf.write(grid_params_str+"\n")
-		uf.write("\n")
-		for line in tf:
-			str_tmp=line[0:-1]
-			if str_tmp!=data_str and str_tmp!=boson_str and str_tmp!=time_str and str_tmp!=temp_str and str_tmp!=grid_params_str:
-				uf.write(line)
-		tf.close()
-		uf.close()
-		os.remove(template_params_file)
+		if path.exists(params_file):
+			os.remove(params_file)
+		if path.exists(other_params_file):
+			os.remove(other_params_file)
+		sp.call(cmd)
 
 def display_figures():
 	"""

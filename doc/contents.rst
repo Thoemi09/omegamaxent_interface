@@ -12,8 +12,7 @@ Contents
    index
    install
    reference/contents
-   issues
    about
-
-.. changelog
+   issues
+   changelog
 
