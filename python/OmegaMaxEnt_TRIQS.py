@@ -416,20 +416,20 @@ def compute_scalar_GfReFreq(G, **kwa):
 
 	if not im_t:
 		iwn=np.array([[w.value for w in G.mesh]])
-		wn=iwn.imag.T
+		t_mesh=iwn.imag.T
 		Gr=np.array([Gr])
 		Gr=Gr.transpose()
 		Gi=np.array([Gi])
 		Gi=Gi.transpose()
-		data_array=np.concatenate((wn,Gr,Gi),axis=1)
+		data_array=np.concatenate((t_mesh,Gr,Gi),axis=1)
 	else:
 		if abs(Gi).max()/abs(Gr).max()>tol_Gi_tau:
 			print "compute_scalar_GfReFreq(): warning, only the real part of imaginary time data is used"
-		tau=np.array([[t.value for t in G.mesh]])
-		tau=tau.T
+		t_mesh=np.array([[t.value for t in G.mesh]])
+		t_mesh=t_mesh.T
 		Gr = np.array([Gr])
 		Gr = Gr.transpose()
-		data_array=np.concatenate((tau,Gr),axis=1)
+		data_array=np.concatenate((t_mesh,Gr),axis=1)
 
 	n_points=data_array.shape[0]
 
@@ -442,29 +442,20 @@ def compute_scalar_GfReFreq(G, **kwa):
 			return None
 		ERRtmp=ERR
 		if len(ERR.shape)==2:
-			if ERR.shape[1]>ERR.shape[0]:
+			if isinstance(ERRtmp[0,0],complex):
+				ERRr=ERR.real
+				ERRi=ERR.imag
+				if ERR.shape[1]>ERR.shape[0]:
+					ERRr = ERRr.transpose()
+					ERRi = ERRi.transpose()
+				ERRtmp=np.concatenate((ERRr, ERRi),axis=1)
+			if ERRtmp.shape[1]>ERRtmp.shape[0]:
 				ERRtmp=ERRtmp.transpose()
 		else:
 			ERRtmp=np.array([ERR.real,ERR.imag])
 			ERRtmp = ERRtmp.transpose()
-		if not im_t:
-			error_array=np.concatenate((wn,ERRtmp),axis=1)
-		else:
-			error_array=np.concatenate((tau,ERRtmp),axis=1)
+		error_array = np.concatenate((t_mesh, ERRtmp), axis=1)
 		np.savetxt(error_file_name,error_array)
-
-	# if error_provided:
-	# 	dim_ERR=np.array(ERR.shape)
-	# 	if dim_ERR.max()!=n_points:
-	# 		print "compute_scalar_GfReFreq(): provided error array does not have the same size as the data."
-	# 		return None
-	# 	if ERR.shape[1]>ERR.shape[0]:
-	# 		ERR=ERR.transpose()
-	# 	if not im_t:
-	# 		error_array=np.concatenate((wn,ERR),axis=1)
-	# 	else:
-	# 		error_array=np.concatenate((tau,ERR),axis=1)
-	# 	np.savetxt(error_file_name,error_array)
 
 	pf = open(params_file, "w")
 	str_tmp = data_str + file_name + '\n'
