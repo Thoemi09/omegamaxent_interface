@@ -114,7 +114,7 @@ class OmegaMaxEnt_test_with_error(ut.TestCase):
         os.chdir(test_dir_name)
 
         GR = OT.compute_GfReFreq(G, ERR=ERRG, interactive_mode=inter_mode, save_figures_data=save_figs,
-                                 grid_params=[wl, dw, wr], comp_grid_params=[dw_comp, SW], non_uniform_grid=nu_grid, name="$G_{ME}$")
+                                 output_grid_params=[wl, dw, wr], comp_grid_params=[dw_comp, SW], non_uniform_grid=nu_grid, name="$G_{ME}$")
 
         os.chdir("..")
         su.rmtree(test_dir_name)

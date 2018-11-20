@@ -441,8 +441,9 @@ def compute_scalar_GfReFreq(G, **kwa):
 			print "compute_scalar_GfReFreq(): provided error array does not have the same size as the data."
 			return None
 		ERRtmp=ERR
-		if len(ERR.shape)==2 and ERR.shape[1]>ERR.shape[0]:
-			ERRtmp=ERRtmp.transpose()
+		if len(ERR.shape)==2:
+			if ERR.shape[1]>ERR.shape[0]:
+				ERRtmp=ERRtmp.transpose()
 		else:
 			ERRtmp=np.array([ERR.real,ERR.imag])
 			ERRtmp = ERRtmp.transpose()
