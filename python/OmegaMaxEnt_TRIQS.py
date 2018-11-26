@@ -133,7 +133,7 @@ def compute_GfReFreq(G, **kwa):
 					print "continuation failed"
 					return None
 				n_freq = len(Gtmp.mesh)
-				GR=GfReFreq(indices=ind, window=(Gtmp.mesh.omega_min,Gtmp.mesh.omega_max), n_points=n_freq, name=name)
+				GR=GfReFreq(indices=G.indices, window=(Gtmp.mesh.omega_min,Gtmp.mesh.omega_max), n_points=n_freq, name=name)
 				GR[ind[0],ind[0]] = Gtmp
 			elif G.indices[0]==G.indices[1]:
 				GR = compute_matrix_GfReFreq(G, **kwa)
@@ -357,9 +357,9 @@ def compute_scalar_GfReFreq(G, **kwa):
 		if len(comp_grid_params) > 0 and comp_grid_params[0]>0:
 			comp_grid_params_dict.update(dict(freq_step=comp_grid_params[0]))
 		if len(comp_grid_params) > 1 and comp_grid_params[1]>0:
-			comp_grid_params_dict.update(dict(SW=comp_grid_params[1]))
+			comp_grid_params_dict.update(dict(spectrum_width=comp_grid_params[1]))
 		if len(comp_grid_params) > 2:
-			comp_grid_params_dict.update(dict(SC=comp_grid_params[2]))
+			comp_grid_params_dict.update(dict(spectrum_center=comp_grid_params[2]))
 		if len(comp_grid_params_dict) > 0:
 			kwa.update(comp_grid_params_dict)
 

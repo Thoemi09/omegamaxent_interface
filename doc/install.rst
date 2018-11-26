@@ -13,7 +13,6 @@ Prerequisite
 
     $ brew install lapack
 
-
 Installation steps
 ------------------
 
