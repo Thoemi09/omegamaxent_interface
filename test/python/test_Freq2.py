@@ -11,7 +11,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 test_dir_name="test_dir_5"
 
-np.random.seed(0)
+np.random.seed(1)
 
 tol_int_diffA=0.05
 
@@ -38,15 +38,15 @@ Npks=len(cw)
 wmin=-20.0
 wmax=20.0
 
-N_interv_max=10000
-Npts_dos=20000
+dw=0.01
+Npts_dos=int((wmax-wmin)/dw+1)
 
 wl=-15
 wr=15
 dw=0.005
 
-dw_comp=0
-SW=0
+dw_comp=0.01
+SW=10
 SC=0
 
 wnmax=W*R_iw_W
