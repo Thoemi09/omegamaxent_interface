@@ -39,7 +39,7 @@ wl=-7
 wr=7
 dw=0.01
 
-dw_comp=0.05
+dw_comp=0
 SW=0
 SC=0
 
@@ -85,30 +85,27 @@ class OmegaMaxEnt_test_with_error(ut.TestCase):
         G.data.real =G.data.real + errGr * np.random.randn(2*n_iwn)
         G.data.imag =G.data.imag + errGi * np.random.randn(2*n_iwn)
 
-        errGr=np.array([errGr])
-        errGi=np.array([errGi])
-
-        errGr=errGr.transpose()
-        errGi=errGi.transpose()
-
-        ERRG=np.concatenate((errGr,errGi),axis=1)
+        ERRG = errGr + 1j * errGi
 
         if not os.path.exists(test_dir_name):
             os.mkdir(test_dir_name)
         os.chdir(test_dir_name)
 
-        GR=OT.compute_GfReFreq(G, ERR=ERRG, interactive_mode=inter_mode, save_figures_data=save_figs, output_grid_params=[wl, dw, wr], comp_grid_params=[dw_comp, SW, SC], name="$G_{ME}$")
+        GR=OT.compute_GfReFreq(G, ERR=ERRG, interactive_mode=inter_mode, save_figures_data=save_figs, output_grid_params=[wl, dw, wr], comp_grid_params=[dw_comp, SW], name="$G_{ME}$")
 
         os.chdir("..")
         su.rmtree(test_dir_name)
 
-        Aw_me=-GR.data.imag/pi
+        if isinstance(GR, GfReFreq):
+            Aw_me = -GR.data.imag / pi
 
-        int_diffA=dw*sum(np.absolute(Aw_me-Aw))
+            int_diffA = dw * sum(np.absolute(Aw_me - Aw))
 
-        print int_diffA
+            print int_diffA
 
-        self.assertLess(int_diffA, tol_int_diffA)
+            self.assertLess(int_diffA, tol_int_diffA)
+        else:
+            self.assertTrue(False)
 
 if __name__ == '__main__':
     ut.main()

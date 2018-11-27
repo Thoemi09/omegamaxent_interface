@@ -158,6 +158,7 @@ def compute_GfReFreq(G, **kwa):
 		for bl,Gbl in G:
 			Gtmp = compute_GfReFreq(Gbl, **kwa)
 			if not isinstance(Gtmp, GfReFreq):
+				print "continuation failed"
 				return None
 			list_G.append(Gtmp)
 			if len(output_grid_params) != 3:
@@ -494,17 +495,22 @@ def compute_scalar_GfReFreq(G, **kwa):
 
 	if im_t:
 		save_Fourier_transform_G_hdf5()
-	
+
+	G_Re_w_data=None
 	#retrieve the real frequency Green function
-	result_file=open(result_file_name,"r")
-	G_Re_w_data=np.loadtxt(result_file)
-	result_file.close()
+	if os.path.exists(result_file_name):
+		result_file=open(result_file_name,"r")
+		G_Re_w_data=np.loadtxt(result_file)
+		result_file.close()
 
 	if os.path.exists(file_name):
 		os.remove(file_name)
 	if error_provided:
 		if os.path.exists(error_file_name):
 			os.remove(error_file_name)
+
+	if not isinstance(G_Re_w_data,np.ndarray):
+		return None
 
 	GR_omega=GfReFreq(target_shape=(),window = (G_Re_w_data[0,0], G_Re_w_data[-1,0]), n_points = G_Re_w_data.shape[0], name = name)
 

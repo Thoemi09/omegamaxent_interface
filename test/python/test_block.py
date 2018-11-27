@@ -11,7 +11,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 test_dir_name="test_dir_4"
 
-np.random.seed(0)
+np.random.seed(2)
 
 tol_int_diffA=0.05
 
@@ -147,33 +147,36 @@ class OmegaMaxEnt_test_with_error(ut.TestCase):
             os.mkdir(test_dir_name)
         os.chdir(test_dir_name)
 
-        GR = OT.compute_GfReFreq(G, ERR=ERRG, interactive_mode=inter_mode, save_figures_data=save_figs, inv_sym=inv_sym,
+        GR = OT.compute_GfReFreq(G, interactive_mode=inter_mode, save_figures_data=save_figs, inv_sym=inv_sym,
                                  output_grid_params=[wl, dw, wr], comp_grid_params=[dw_comp, SW], name="$G_{ME}$")
 
         os.chdir("..")
         su.rmtree(test_dir_name)
 
-        A00_me = -GR['bl1'][0, 0].data.imag / pi
-        A01_me = -GR['bl1'][0, 1].data.imag / pi
-        A11_me = -GR['bl1'][1, 1].data.imag / pi
-        A3_me = -GR['bl2'][0, 0].data.imag / pi
+        if isinstance(GR, BlockGf):
+            A00_me = -GR['bl1'][0, 0].data.imag / pi
+            A01_me = -GR['bl1'][0, 1].data.imag / pi
+            A11_me = -GR['bl1'][1, 1].data.imag / pi
+            A3_me = -GR['bl2'][0, 0].data.imag / pi
 
-        int_diff_A00=dw*sum(np.absolute(A00_me-A00))
-        int_diff_A01=dw*sum(np.absolute(A01_me-A01))
-        int_diff_A11=dw*sum(np.absolute(A11_me-A11))
-        int_diff_A3=dw * sum(np.absolute(A3_me - Aw3))
+            int_diff_A00=dw*sum(np.absolute(A00_me-A00))
+            int_diff_A01=dw*sum(np.absolute(A01_me-A01))
+            int_diff_A11=dw*sum(np.absolute(A11_me-A11))
+            int_diff_A3=dw * sum(np.absolute(A3_me - Aw3))
 
-        print int_diff_A00
-        print int_diff_A01
-        print int_diff_A11
-        print int_diff_A3
+            print int_diff_A00
+            print int_diff_A01
+            print int_diff_A11
+            print int_diff_A3
 
-        t00 = int_diff_A00 < tol_int_diffA
-        t01 = int_diff_A01 < tol_int_diffA
-        t11 = int_diff_A11 < tol_int_diffA
-        t3 = int_diff_A3 < tol_int_diffA
+            t00 = int_diff_A00 < tol_int_diffA
+            t01 = int_diff_A01 < tol_int_diffA
+            t11 = int_diff_A11 < tol_int_diffA
+            t3 = int_diff_A3 < tol_int_diffA
 
-        self.assertTrue(t00 and t01 and t11 and t3)
+            self.assertTrue(t00 and t01 and t11 and t3)
+        else:
+            self.assertTrue(False)
 
 if __name__ == '__main__':
     ut.main()

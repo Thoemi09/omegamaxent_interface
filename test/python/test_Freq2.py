@@ -101,13 +101,7 @@ class OmegaMaxEnt_test_with_error(ut.TestCase):
         G.data.real = Gr + errGr * np.random.randn(2 * n_iwn)
         G.data.imag = Gi + errGi * np.random.randn(2 * n_iwn)
 
-        errGr = np.array([errGr])
-        errGi = np.array([errGi])
-
-        errGr = errGr.transpose()
-        errGi = errGi.transpose()
-
-        ERRG = np.concatenate((errGr, errGi), axis=1)
+        ERRG = errGr + 1j * errGi
 
         if not os.path.exists(test_dir_name):
             os.mkdir(test_dir_name)
@@ -119,13 +113,16 @@ class OmegaMaxEnt_test_with_error(ut.TestCase):
         os.chdir("..")
         su.rmtree(test_dir_name)
 
-        Aw_me=-GR.data.imag/pi
+        if isinstance(GR, GfReFreq):
+            Aw_me=-GR.data.imag/pi
 
-        int_diffA=dw*sum(np.absolute(Aw_me-Aw))
+            int_diffA=dw*sum(np.absolute(Aw_me-Aw))
 
-        print int_diffA
+            print int_diffA
 
-        self.assertLess(int_diffA, tol_int_diffA)
+            self.assertLess(int_diffA, tol_int_diffA)
+        else:
+            self.assertTrue(False)
 
 if __name__ == '__main__':
     ut.main()
