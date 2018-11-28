@@ -45,9 +45,12 @@ wl=-15
 wr=15
 dw=0.005
 
-dw_comp=0.01
-SW=10
+dw_comp=0
+SW=0
 SC=0
+
+use_param_grid=True
+param_grid=[-4, 0.2, -1.6, 0.06, -0.2, 0.01, 0.2, 0.05, 1.5, 0.1, 3, 0.2, 7]
 
 wnmax=W*R_iw_W
 
@@ -107,8 +110,10 @@ class OmegaMaxEnt_test_with_error(ut.TestCase):
             os.mkdir(test_dir_name)
         os.chdir(test_dir_name)
 
-        GR = OT.compute_GfReFreq(G, ERR=ERRG, interactive_mode=inter_mode, save_figures_data=save_figs,
-                                 output_grid_params=[wl, dw, wr], comp_grid_params=[dw_comp, SW], non_uniform_grid=nu_grid, name="$G_{ME}$")
+         # GR = OT.compute_GfReFreq(G, ERR=ERRG, interactive_mode=inter_mode, save_figures_data=save_figs, output_grid_params=[wl, dw, wr], comp_grid_params=[dw_comp, SW], non_uniform_grid=nu_grid, name="$G_{ME}$")
+
+
+        GR = OT.compute_GfReFreq(G, ERR=ERRG, interactive_mode=inter_mode, save_figures_data=save_figs, output_grid_params=[wl, dw, wr],  use_parameterized_grid=use_param_grid, parameterized_grid_params=param_grid, name="$G_{ME}$")
 
         os.chdir("..")
         su.rmtree(test_dir_name)
