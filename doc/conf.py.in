@@ -32,6 +32,7 @@ html_context = {'header_title': 'OmegaMaxEnt_TRIQS',
                 'header_subtitle': 'Analytic Continuation',
                 'header_links': [['Install', 'install'],
                                  ['Documentation', 'contents'],
+                                 ['Tutorials','tutorials'],
                                  ['Issues', 'issues'],
                                  ['About OmegaMaxEnt_TRIQS', 'about']]}
 html_static_path = ['@CMAKE_SOURCE_DIR@/doc/_static']
