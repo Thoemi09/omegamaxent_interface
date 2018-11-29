@@ -75,7 +75,7 @@ for (int i = 0; i < osxPlatforms.size(); i++) {
         sh "cmake $srcDir -DCMAKE_INSTALL_PREFIX=$installDir -DTRIQS_ROOT=$triqsDir -DLAPACK_ROOT=${env.BREW}/opt/lapack"
         sh "make -j3"
         try {
-          sh "make test"
+          sh "make test CTEST_OUTPUT_ON_FAILURE=1"
         } catch (exc) {
           archiveArtifacts(artifacts: 'Testing/Temporary/LastTest.log')
           throw exc
