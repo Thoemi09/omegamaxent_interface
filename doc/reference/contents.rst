@@ -3,7 +3,8 @@
 User Guide
 ==========
 
-This is the user guide for the OmegaMaxEnt_TRIQS module. It should be sufficient ot obtain good results in many cases. For a more advanced use, see the :math:`\Omega MaxEnt` `user guide`_.
+This is the user guide for the OmegaMaxEnt_TRIQS interface.
+The information presented here is sufficient for many cases, however, for a more advanced use, see the :math:`\Omega MaxEnt` `user guide`_.
 
 
 In the following, we refer to the function to be analytically continued as the *"Green's function"*, but it can be also a two-particle correlation function, a self-energy, or any function having a representation of the form
@@ -12,7 +13,7 @@ In the following, we refer to the function to be analytically continued as the *
 
     \mathbf{G}(i\omega_n)=\int_{-\infty}^{\infty} d\omega \frac{\mathbf{A}(\omega)}{i\omega_n-\omega},
 
-where :math:`\omega_n` is a fermionic or boson Matsubara frequency, or
+where :math:`\omega_n` is a fermionic or bosonic Matsubara frequency, or
 
 .. math::
 
@@ -34,7 +35,6 @@ Input parameters
 .. _`Green's function`:
 
 *G:*
-
     Only mandatory parameter of type *Gf*, *GfImFreq*, *GfImTime*, or *BlockGf* containing objects of one of those types.
 
     Input Matsubara Green's function.
@@ -45,7 +45,6 @@ The following parameters, to be passed as keyword arguments, are the most common
 .. _ERR:
 
 *ERR:*
-
     Optional real or complex numpy array.
 
     Standard deviation if *G* is scalar or has a single element.
@@ -89,7 +88,7 @@ The following parameters, to be passed as keyword arguments, are the most common
 *save_G:*
     Optional boolean. Default: *True*.
 
-    By default, the result is saved in hdf5 format as *'G'* in file *G_Re_Freq.h5*.
+    By default, the result is saved in hdf5 format as *'G'*  in the file *G_Re_Freq.h5*.
 
 .. _comp_grid_params:
 
@@ -170,7 +169,7 @@ You can also force the calculation to pause and display the results at different
 
 Note that you can change parameters during a pause by modifying the file **OmegaMaxEnt_input_params.dat** and the changes will be applied when execution is resumed at the point of interruption. For example, if you have set *alpha_min* to a certain value (that parameter will appear as *"minimum value of alpha:"* in the file), you can modify that value (or remove the corresponding line completely) during the pause occuring when *alpha_min* is reached, and resume the computation at the next value of :math:`\alpha` after having closed the figures. On the other hand, if you would want to add a *new* parameter during a pause, say *new_param*, in **OmegaMaxEnt_input_params.dat** you have to define it using the string *OmegaMaxEnt_input_params['new_param']*. The parameter names are only understood by the python interface.
 
-When the calculation is over and you are satisfied with the result displayed, you can exit the execution by closing all the figures and entering any character other than *'y'* in the terminal. This will resume the execution of the python function **compute_GfReFreq()**.
+When the calculation is over and you are satisfied with the result displayed, you can exit the execution by closing all the figures and entering any character other than *'y'*  in the terminal. This will resume the execution of the python function **compute_GfReFreq()**.
 
 If *interactive_mode=False*, :math:`\Omega MaxEnt` will not display any figure and **compute_GfReFreq()** will resume as soon as the calculation is over.
 
@@ -185,11 +184,11 @@ Setting errors
 
 In the current version, you can provide errors only for a scalar-valued Green's function. If the covariance matrix is diagonal, you can use parameter ERR_ to provide the standard deviation as a real or complex numpy array having the same shape as *G.data*. For a non-diagonal covariance, you can provide the name of the files containing the covariance matrix with parameter *cov_tau* for imaginary time data or *cov_re_re*, *cov_im_im* and *cov_re_im* for imaginary frequency data. The file type must be one of the valid `armadillo types <http://arma.sourceforge.net/docs.html#save_load_mat>`_.
 
-For matrix-valued Green's function, the error is assumed to be constant. The value of that constant is not relevant since it has no effect on the results. Hopefully, the option of providing errors for matrix Green's function will be available in a future version.
+For matrix-valued Green's function, the error is assumed to be constant. The value of that constant is not relevant since it has no effect on the results.
 
 
 Imaginary time data
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 If your data is a scalar *GfImTime* and you do not have an estimate of the error, or the error is constant, do not provide errors. Otherwise, because :math:`\Omega MaxEnt` works internally in Matsubara frequency, it will Fourier transform the covariance matrix, which takes time, but is not useful in that case because the result will also be a constant diagonal covariance in frequency, while the result does not depend on the absolute value of the error.
 
@@ -209,9 +208,9 @@ There are two different real frequency grids: the *output grid* and the *computa
 
 The output grid is the grid on which the output Green's function is defined. You can control it with parameter output_grid_params_. This frequency grid has a uniform density and is defined between :math:`\omega_{min}` and :math:`\omega_{max}` with a step :math:`\Delta\omega`. This is an optional parameter. If not provided, :math:`\Omega MaxEnt` generates an output frequency grid that is usually well adapted to the spectrum.
 
-For computational efficiency reasons, the real frequency grid used in the calculation is different from the output grid. In many cases the default computational grid generated by :math:`\Omega MaxEnt` is well suited to the spectrum and there is no need to modify it. It can however happen that the calculation fails (no optimal value of alpha_ is found) because the default grid is not appropriate. Also, even when the calculation terminates successfully, the result is not always optimal. For those cases you can use the input parameter comp_grid_params_ to control the computational grid in the region where most of the spectral weight is located. Outside that region, a particular non-uniform grid is always used by :math:`\Omega MaxEnt`. More advanced parameters are also available to control the computational grid in the dictionary *OmegaMaxEnt_input_params* (section FREQUENCY GRID PARAMETERS in *OmegaMaxEnt_parameters.py*). See the :math:`\Omega MaxEnt` `user guide`_ for more details on those parameters.
+For computational efficiency reasons, the real frequency grid used in the calculation is different from the output grid. In many cases the default computational grid generated by :math:`\Omega MaxEnt` is well suited to the spectrum and there is no need to modify it. It can however happen that the calculation fails (no optimal value of alpha_ is found) because the default grid is not appropriate. Even when the calculation terminates successfully, the result might not always be as disired. For those cases you can use the input parameter comp_grid_params_ to control the computational grid in the region where most of the spectral weight is located. Outside that region, a particular non-uniform grid is always used by :math:`\Omega MaxEnt`. More advanced parameters are also available to control the computational grid in the dictionary *OmegaMaxEnt_input_params* (section FREQUENCY GRID PARAMETERS in *OmegaMaxEnt_parameters.py*). See the :math:`\Omega MaxEnt` `user guide`_ for more details on those parameters.
 
-For a spectrum having a peak centered at zero frequency that is very narrow compared to the total width of the spectrum, a simple way to optimize the computational grid is to set non_uniform_grid_ =True. :math:`\Omega MaxEnt` will then use a grid with a density that is high in a narrow region around :math:`\omega=0` and decreases as :math:`|\omega|` increases. The details of how this grid is defined are in the :math:`\Omega MaxEnt` `user guide`_.
+For a spectrum having a peak centered at zero frequency that is very narrow compared to the total width of the spectrum, a simple way to optimize the computational grid is to set non_uniform_grid_ =True. :math:`\Omega MaxEnt` will then use a grid with a density that is high in a narrow region around :math:`\omega=0` and decreases as :math:`|\omega|` increases. The detailed definition of this grid are given in the :math:`\Omega MaxEnt` `user guide`_.
 
 .. _alpha:
 
@@ -225,17 +224,19 @@ Matrix-valued functions
 
 If the Green's function is matrix-valued, the calculation is done using the auxiliary Green's function approach described in [#AuxME]_ and also in appendix C of the :math:`\Omega MaxEnt` `user guide`_. In that calculation, the off-diagonal elements of the retarded function are obtained *indirectly* from the spectral functions of the diagonal elements and auxiliary functions that are linear combinations of diagonal and non-diagonal elements. Those auxiliary functions are constructed to have positive semi-definite spectral functions, so that they can be computed with the standard maximum entropy approach. As for the diagonal elements (of the form :math:`\langle T_{\tau} c_i(\tau) c_i^\dagger\rangle`), they always have positive semi-definite spectral functions. Therefore, in that calculation, the retarded functions corresponding to the diagonal and the auxiliary Matsubara functions are first computed with :math:`\Omega MaxEnt`, and are then combined at the python level to obtain the retarded off-diagonal elements.
 
-`mu and nu`_:
+mu and nu
+---------
 
 For Green or correlation functions of the form :math:`\langle T_{\tau} o_i(\tau) o_j^\dagger\rangle`, where :math:`o_i` and :math:`o_j` are operators corresponding to the same type of excitations, e.g. electronic excitations, the parameters `mu and nu`_ should be left equal to 1. On the other hand, for a correlation function of the form :math:`\langle T_{\tau} p(\tau) q^\dagger\rangle`, where :math:`p` and :math:`q` correspond to different types of excitations, different values of `mu and nu`_ should be tried to find a stable result. See Ref. [#AuxME]_ for more details.
 
-If your matrix Green's function has the symmetry :math:`G_{ji}=G_{ij}`, set inv_sym_ =True. Then, only the upper part of the matrix will actually be computed. Otherwise, the amount of work required to compute the off-diagonal elements is uselessly doubled.
+If your matrix Green's function has the symmetry :math:`G_{ji}=G_{ij}`, set inv_sym_ =True. Then, only the upper part of the matrix will actually be computed, which reduces the required to computational demand by a factor of two.
 
 
 Examples
 --------
 
-Suppose you have saved a Matsubara Green's function as a TRIQS object 'G' in a hdf5 file "G.h5". Here is the simplest way to obtain the corresponding real frequency Green's function::
+Suppose you have saved a Matsubara Green's function as a TRIQS object 'G' in a hdf5 file "G.h5". The quickest way to obtain the corresponding
+real frequency Green's function is::
 
     from pytriqs.archive import HDFArchive as HA
     import OmegaMaxEnt_TRIQS as OT
@@ -247,7 +248,7 @@ Suppose you have saved a Matsubara Green's function as a TRIQS object 'G' in a h
     #obtain the retarded Green's function
     GR=OT.compute_GfReFreq(G)
 
-Alternatively, if you know that the spectrum has a sharp peak at :math:`\omega=0` and that the spectrum is mostly located between :math:`\omega=-2` and :math:`\omega=2`, you can use, assuming *G* is previously defined::
+Additionally, if you know that the spectrum has a sharp peak at :math:`\omega=0` and that the spectrum is mostly located between :math:`\omega=-2` and :math:`\omega=2`, you can use::
 
     Dw=0.001
     SW=4
