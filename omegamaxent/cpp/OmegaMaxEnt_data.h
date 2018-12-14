@@ -35,6 +35,7 @@
 #include <string.h>
 #include <ctime>
 #include "graph_2D.h"
+#include "graph_3D.h"
 #include "generique.h"
 #include "OmegaMaxEnt_license.h"
 
@@ -341,12 +342,14 @@ extern "C++"
 		bool compute_moments_omega_n_2();
 		// extract moments from a real (even) Matsubara frequency correlation function
 		bool compute_moments_chi_omega_n();
-		//compute derivatives of G(tau) at tau=0 and tau=beta
-		bool compute_dG_dtau();
+		// extract moments from an imaginary time Green function and its derivatives at tau=0 and tau=beta
+		bool compute_moments_tau();
+		// compute derivatives of G(tau) at tau=0 and tau=beta
+//		bool compute_dG_dtau();
 		// extract moments from an imaginary time fermionic Green function
-		bool compute_moments_tau_fermions();
+//		bool compute_moments_tau_fermions();
 		// extract moments from an imaginary time bosonic Green function
-		bool compute_moments_tau_bosons();
+//		bool compute_moments_tau_bosons();
 		// test the presence of a sharp peak around omega=0, using a Laurent series fit, for a fermionic Matsubara frequency Green function
 		bool test_low_energy_peak_fermions();
 		// test the presence of a sharp peak around omega=0, using a Laurent series fit, for a bosonic Matsubara frequency Green function
@@ -498,10 +501,10 @@ extern "C++"
 		void Fourier_transform_spectrum(vec wFt, vec AwFt, vec &t, cx_vec &At);
 		//compute the real frequency Green function from A(t)
 		void compute_G_Re_omega_from_A_t(vec t, cx_vec At, cx_vec &G_Re_omega);
-		//compute the real part of the real-frequency Green function Re[G(omega)] using the Kramers-Kronig relation
+		//compute the real part of the real-frequency Green function Re[G(omega)]
 		void compute_Re_G_omega(vec Ap);
-		//compute the real part of the real-frequency correlation function Re[chi(omega)] that has the property chi(-omega)=chi*(omega) using the Kramers-Kronig relation
-		void compute_Re_chi_omega(vec Ap);
+		//compute the real part of the real-frequency correlation function Re[chi(omega)] that has the property chi(-omega)=chi*(omega)
+	//	void compute_Re_chi_omega(vec Ap);
 		//set the output (uniform) real frequency grid. extr_w(0) and extr_w(1) are the extrema of the grid used in the MaxEnt computation (for which the spectrum is defined)
 		void set_output_frequency_grid(vec extr_w);
 		// perform the Kramers-Kronig integral 
@@ -532,7 +535,7 @@ extern "C++"
 		
         bool data_file_loaded, use_grid_params, use_const_dw, use_exp_step, displ_prep_figs, displ_adv_prep_figs, print_other_params, boson, tau_GF, initialize, initialize_maxent, execute_maxent, save_spec_func, print_alpha, displ_optim_figs, cov_diag, moments_provided, eval_moments, covm_diag, wc_exists, w_exists, SW_set, SC_set, peak_exists, read_params, read_other_params, params_loaded, other_params_loaded, M1_set, M2_set, main_spectral_region_set, A_ref_change, show_optimal_alpha_figs, show_lowest_alpha_figs, show_alpha_curves, preproc_complete, Du_constant, non_uniform_grid, w_origin_set, interactive_mode, Ginf_finite, alpha_min_too_high, error_provided, compute_Pade, dG_dtau_computed;
 		
-        double tem, cutoff_wn, SW, SC, w_origin, step_omega, signG, alpha0, alpha0_default, alpha, pow_alpha_step, alpha_min_default, alpha_min, alpha_opt_max, alpha_opt_min, M0, errM0, M1, errM1, M2, errM2, M3, errM3, std_omega, omega_n_trunc, wl, wr, w0l, w0r, dwl, dwr, dw_peak, M0t, M1n, default_model_width, default_model_center, default_model_shape, dlchi2_lalpha_min, dlchi2_lalpha_max, alpha_save_max, alpha_save_min, lchi2_lalpha_lgth, G_omega_inf, eta_Pade;
+        double tem, cutoff_wn, SW, SC, w_origin, step_omega, signG, alpha0, alpha0_default, alpha, pow_alpha_step, alpha_min_default, alpha_min, alpha_opt_max, alpha_opt_min, M0, errM0, M1, errM1, M2, errM2, M3, errM3, std_omega, omega_n_trunc, wl, wr, w0l, w0r, dwl, dwr, dw_peak, M0t, M1n, default_model_width, default_model_center, default_model_shape, dlchi2_lalpha_min, dlchi2_lalpha_max, alpha_save_max, alpha_save_min, lchi2_lalpha_lgth, G_omega_inf, eta_Pade, M0_A, M1_A, M2_A, M3_A;
         
         uint col_Gr, col_errGr, col_errGi, col_Gtau, col_errGtau, Nalpha, Nn, Nn_all, indG_0, indG_f, NM, NMinput, NM_odd, NM_even, Nw, NwA, Nwc, Nw_dense, Nw_out, jfit, ind_cutoff_wn, NGM, Nalpha_max, NAprec, ind0, Ntau, Nn_as_min;
 		uvec n, n_all, Nw_lims;
@@ -541,7 +544,7 @@ extern "C++"
 		mat K, KGM, KGMw, invDw, KG_V, KM, KM_V, COV, CRR, CII, CRI, COVM, COVMfit, Ctau, Ctau_all, green_data, error_data, grid_w_data, def_data, Aw_data, Aref_data, Aprec, Aw_samp;
 		rowvec omega_grid_params, w_sample, noise_params, output_grid_params;
 		uvec w_sample_ind;
-		vec w_out, w_dense, Gr_Re_w, Gi_Re_w, Gr_Re_w_KK, Gi_Re_w_KK, Gi_Re_w_FFT, Gr, Gi, Gchi2, G_V, GM, wn, wn_all, errGr, errGi, errG, errGtau, M, M_V, errM, M_even, M_odd, Mfit, ws, A, A0, Amin, wc, w, wA, dwS, default_model, w_ref, A_ref, chi2_vec, alpha_vec, S_vec, M_ord, Gtau, tau, dlchi2_lalpha_1, curv_lchi2_lalpha_1, grid_dens, P_alpha_G, log_P_alpha_G, dG_tau, d2G_tau, d3G_tau, t_re, dG_w;
+		vec w_out, w_dense, Gr_Re_w, Gi_Re_w, Gr_Re_w_KK, Gi_Re_w_KK, Gi_Re_w_FFT, Gr, Gi, Gchi2, G_V, GM, wn, wn_all, errGr, errGi, errG, errGtau, M, M_V, errM, M_even, M_odd, Mfit, ws, A, A0, Amin, wc, w, wA, dwS, default_model, w_ref, A_ref, chi2_vec, alpha_vec, S_vec, M_ord, Gtau, tau, dlchi2_lalpha_1, curv_lchi2_lalpha_1, grid_dens, P_alpha_G, log_P_alpha_G, dG_tau, d2G_tau, d3G_tau, t_re, dG_w, A_Pade;
 		cx_vec G, G_all, G_t_re, GR_Pade;
 		cx_mat Kcx;
 		uword ind_P_alpha_G_max;
