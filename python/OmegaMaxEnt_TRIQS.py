@@ -397,8 +397,8 @@ def compute_scalar_GfReFreq(G, **kwa):
 #		print "imaginary time Green function provided to compute_scalar_GfReFreq()"
 
 	bosonic=(G.mesh.statistic=="Boson")
-#	if bosonic:
-#		print "bosonic Green function provided to compute_scalar_GfReFreq()"
+	# if bosonic:
+	# 	print "bosonic Green function provided to compute_scalar_GfReFreq()"
 
 	error_provided = isinstance(ERR, np.ndarray)
 
@@ -477,7 +477,7 @@ def compute_scalar_GfReFreq(G, **kwa):
 				val_str = "no"
 				if val:
 					val_str = "yes"
-			elif isinstance(val, Iterable):
+			elif isinstance(val, Iterable) and not isinstance(val,str):
 				val_str = ""
 				for elem in val:
 					val_str = val_str + " " + str(elem)
