@@ -94,7 +94,6 @@ extern "C++"
 		static char file_name[100];
 		static char file_name_format[100];
 		static char figs_dir[100];
-//		static char scripts_dir[100];
 		static ofstream figs_ind_file;
         
     private:
