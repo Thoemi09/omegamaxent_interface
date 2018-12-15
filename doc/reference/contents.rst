@@ -30,7 +30,7 @@ Whether you have a scalar-, a matrix-valued or a block Green's function, the rea
 
 
 Input parameters
----------------------------------------
+----------------
 
 .. _`Green's function`:
 
@@ -137,7 +137,7 @@ The following parameters, to be passed as keyword arguments, are the most common
     performed over positive real frequencies only.
 
 Return parameter
----------------------------------------
+----------------
 
 .. _`retarded Green's function`:
 
@@ -232,8 +232,8 @@ For Green or correlation functions of the form :math:`\langle T_{\tau} o_i(\tau)
 If your matrix Green's function has the symmetry :math:`G_{ji}=G_{ij}`, set inv_sym_ =True. Then, only the upper part of the matrix will actually be computed, which reduces the required to computational demand by a factor of two.
 
 
-Examples
---------
+Simple example of usage
+-----------------------
 
 Suppose you have saved a Matsubara Green's function as a TRIQS object 'G' in a hdf5 file "G.h5". The quickest way to obtain the corresponding
 real frequency Green's function is::
