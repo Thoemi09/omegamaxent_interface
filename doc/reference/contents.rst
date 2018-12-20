@@ -9,17 +9,26 @@ The information presented here is sufficient for many cases, however, for a more
 
 In the following, we refer to the function to be analytically continued as the *"Green's function"*, but it can be also a two-particle correlation function, a self-energy, or any function having a representation of the form
 
+.. _`(1)`:
+
 .. math::
 
-    \mathbf{G}(i\omega_n)=\int_{-\infty}^{\infty} d\omega \frac{\mathbf{A}(\omega)}{i\omega_n-\omega},
+    \mathbf{G}(i\omega_n)=\int_{-\infty}^{\infty} d\omega \frac{\mathbf{A}(\omega)}{i\omega_n-\omega},\qquad (1)
 
 where :math:`\omega_n` is a fermionic or bosonic Matsubara frequency, or
 
+.. _`(2)`:
+
 .. math::
 
-    \mathbf{G}(\tau)=-\int_{-\infty}^{\infty} d\omega \frac{e^{-\omega\tau}\mathbf{A}(\omega)}{1\pm e^{-\beta\omega}},
+    \mathbf{G}(\tau)=-\int_{-\infty}^{\infty} d\omega \frac{e^{-\omega\tau}\mathbf{A}(\omega)}{1\pm e^{-\beta\omega}},\qquad (2)
 
 where the + and - signs apply to the fermionic and bosonic cases, respectively, and :math:`\mathbf{A}(\omega)` is a positive semi-definite matrix in the fermionic case or :math:`\mathbf{A}(\omega)/\omega` is positive semi-definite in the bosonic case.
+
+.. note::
+
+    The code works internally with the imaginary frequency Green's function. Therefore, if you provide :math:`\mathbf{G}(\tau)`, it will be Fourier-transformed by the code before the analytic continuation begins.
+
 
 Obtain the retarded Green's function
 ------------------------------------
@@ -35,7 +44,7 @@ Input parameters
 .. _`Green's function`:
 
 *G:*
-    Only mandatory parameter of type *Gf*, *GfImFreq*, *GfImTime*, or *BlockGf* containing objects of one of those types.
+    Only mandatory parameter of type Gf_, GfImFreq_, GfImTime_, or BlockGf_ containing objects of one of those types.
 
     Input Matsubara Green's function.
 
@@ -68,7 +77,7 @@ The following parameters, to be passed as keyword arguments, are the most common
 *name:*
     Optional string.
 
-    Name parameter of the returned *GfReFreq* object.
+    Name parameter of the returned GfReFreq_ object.
 
 
 .. _interactive_mode:
@@ -120,7 +129,7 @@ The following parameters, to be passed as keyword arguments, are the most common
 *inv_sym:*
     Optional boolean. Default: *False*.
 
-    If *G* is a matrix or a *BlockGf*, set *inv_sym=True* if :math:`G_{ji}=G_{ij}`. The calculation time for the off diagonal elements will then be halved.
+    If *G* is a matrix or a BlockGf_, set *inv_sym=True* if :math:`G_{ji}=G_{ij}`. The calculation time for the off diagonal elements will then be halved.
 
 .. _`mu and nu`:
 
@@ -143,22 +152,9 @@ Return parameter
 
 *GR:*
 
-    *GfReFreq* object or *BlockGf* of *GfReFreq* objects.
+    GfReFreq_ object or BlockGf_ of GfReFreq_ objects.
 
     The retarded Green's function.
-
-
-
-.. :math:`\Omega MaxEnt` parameter files
-.. --------------------------------------
-
-.. :math:`\Omega MaxEnt` uses the file **OmegaMaxEnt_input_params.dat** to interact with the user. You can optionally create that file in advance with the function **create_params_file()**. This allows you to set some parameters that are not set by **compute_GfReFreq()**. Some parameters, which appear in the top section of the file, are exclusively set by **compute_GfReFreq()**, but all the other parameters can be modified.
-
-.. If **OmegaMaxEnt_input_params.dat** does not exist when **compute_GfReFreq()** is called, it will create it.
-
-.. :math:`\Omega MaxEnt` also uses a file called **OmegaMaxEnt_other_params.dat**, also created by **create_params_file()**, which defines a certain number of internal parameters on which the computation depends. Do not modify this file unless you are an advanced user.
-
-.. All the parameters in **OmegaMaxEnt_input_params.dat** and **OmegaMaxEnt_other_params.dat** are described in the :math:`\Omega MaxEnt` `user guide`_.
 
 Interactive mode
 ----------------
@@ -190,10 +186,9 @@ For matrix-valued Green's function, the error is assumed to be constant. The val
 Imaginary time data
 ~~~~~~~~~~~~~~~~~~~
 
-If your data is a scalar *GfImTime* and you do not have an estimate of the error, or the error is constant, do not provide errors. Otherwise, because :math:`\Omega MaxEnt` works internally in Matsubara frequency, it will Fourier transform the covariance matrix, which takes time, but is not useful in that case because the result will also be a constant diagonal covariance in frequency, while the result does not depend on the absolute value of the error.
+If your data is a scalar GfImTime_ and you do not have an estimate of the error, or the error is constant, do not provide errors. Otherwise, because :math:`\Omega MaxEnt` works internally in Matsubara frequency, it will Fourier transform the covariance matrix, which takes time, but is not useful in that case because the result will also be a constant diagonal covariance in frequency, while the result does not depend on the absolute value of the error.
 
-On the other hand, if the error depends on :math:`\tau` and you *do* provide errors, either with parameter *ERR* or *cov_tau* (file name for a covariance matrix), note that the Fourier transform of the Green function is saved by default as a *GfImFreq* object called 'G' in file *G_im_freq.h5* and the Fourier transform of the covariance matrix is saved in files *covar_ReRe.dat*, *covar_ImIm.dat* and *covar_ReIm.dat* in directory *Fourier_transformed_data*. This can be useful if you want to perform the continuation again on the same data, without having to wait during the Fourier transform of the covariance matrix, which takes some time if there are many :math:`\tau` points. To do so, you pass to **compute_GfReFreq()** the saved *GfImFreq* object and the paths to the covariance files with parameters *cov_re_re*, *cov_im_im* and *cov_re_im* instead of the original *GfImTime* object and the error on :math:`G(\tau)` with *ERR*.
-
+On the other hand, if the error depends on :math:`\tau` and you *do* provide errors, either with parameter *ERR* or *cov_tau* (file name for a covariance matrix), note that the Fourier transform of the Green function is saved by default as a GfImFreq_ object called *'G'* in file *G_im_freq.h5* and the Fourier transform of the covariance matrix is saved in files *covar_ReRe.dat*, *covar_ImIm.dat* and *covar_ReIm.dat* in directory *Fourier_transformed_data*. This can be useful if you want to perform the continuation again on the same data, without having to wait during the Fourier transform of the covariance matrix, which takes some time if there are many :math:`\tau` points. To do so, you pass to **compute_GfReFreq()** the saved GfImFreq_ object and the paths to the covariance files with parameters *cov_re_re*, *cov_im_im* and *cov_re_im* instead of the original GfImTime_ object and the error on :math:`G(\tau)` with *ERR*.
 
 
 Display figures
@@ -214,10 +209,30 @@ For a spectrum having a peak centered at zero frequency that is very narrow comp
 
 .. _alpha:
 
-Choice of entropy weight :math:`\alpha`
----------------------------------------
+Maximum entropy method and choice of entropy weight :math:`\alpha`
+------------------------------------------------------------------
 
-In the `maximum entropy`_ method, the weight :math:`\alpha` of the entropy term can be chosen in `different ways`_. :math:`\Omega MaxEnt` computes the spectra for a large range of :math:`\alpha`, starting at large :math:`\alpha`, and chooses the value where the curvature of :math:`log(\chi^2)` as a function of :math:`\gamma log(\alpha)` is maximal [#OME]_. Here :math:`\gamma<1` (parameter name: *gamma*) reduces the probability of a wrong value of :math:`\alpha` to be chosen (default value: :math:`\gamma=0.2`). Despite the use of :math:`\gamma` and some smoothing of the curve :math:`log(\chi^2)` vs :math:`\gamma log(\alpha)` in the computation of the curvature, there is still a chance that a wrong value of :math:`\alpha` will be selected because of some irregularities in :math:`log(\chi^2)` vs :math:`\gamma log(\alpha)` that produce parasitic peaks in the curvature. This is one of the reasons why the diagnostic tools are useful.
+The maximum entropy method consists in minimizing the functional
+
+.. math::
+
+    Q_\alpha[A]=\chi^2-\alpha S
+
+with
+
+.. math::
+
+    \chi^2=\left(G-\mathbf{K}A\right)^T C^{-1}\left(G-\mathbf{K}A\right),
+
+where :math:`G` is the input data vector, :math:`A` is a vector containing the spectrum values on a discretized frequency grid, :math:`\mathbf{K}` is a matrix such that :math:`\mathbf{K}A` performs the integral `(1)`_ (in :math:`\Omega MaxEnt`, but also `(2)`_ or another representation in general), :math:`C` is the data's covariance matrix, :math:`\alpha` is an adjustable parameter, and :math:`S` is a differential entropy, defined as
+
+.. math::
+
+    S=-\int d\omega \left [A(\omega) \ln \left(\frac{A(\omega)}{D(\omega)}\right)-A(\omega)+D(\omega)\right],
+
+where :math:`D(\omega)` is called the *default model* and is the solution that minimizes :math:`Q` if :math:`\chi^2` is negligible, i.e., at very large :math:`\alpha`. :math:`D(\omega)` is defined in a way to include information known in advanced about the spectrum. By default, in :math:`\Omega MaxEnt`, :math:`D(\omega)` is a gaussian with the same norm and first two moments associated with :math:`A(\omega)`, which are extracted from the input data.
+
+The weight :math:`\alpha` of the entropy term can be chosen in `different ways`_. In :math:`\Omega MaxEnt`, the spectra are computed for a large range of :math:`\alpha`, starting at large :math:`\alpha`, and the optimal value is chosen where the curvature of :math:`log(\chi^2)` as a function of :math:`\gamma log(\alpha)` is maximal [#OME]_. Here :math:`\gamma<1` (parameter name: *gamma*) reduces the probability of a wrong value of :math:`\alpha` to be chosen (default value: :math:`\gamma=0.2`). Despite the use of :math:`\gamma` and some smoothing of the curve :math:`log(\chi^2)` vs :math:`\gamma log(\alpha)` in the computation of the curvature, there is still a chance that a wrong value of :math:`\alpha` will be selected because of some irregularities in :math:`log(\chi^2)` vs :math:`\gamma log(\alpha)` that produce parasitic peaks in the curvature. This is one of the reasons why the diagnostic tools are useful.
 
 Matrix-valued functions
 -----------------------
@@ -229,7 +244,7 @@ mu and nu
 
 For Green or correlation functions of the form :math:`\langle T_{\tau} o_i(\tau) o_j^\dagger\rangle`, where :math:`o_i` and :math:`o_j` are operators corresponding to the same type of excitations, e.g. electronic excitations, the parameters `mu and nu`_ should be left equal to 1. On the other hand, for a correlation function of the form :math:`\langle T_{\tau} p(\tau) q^\dagger\rangle`, where :math:`p` and :math:`q` correspond to different types of excitations, different values of `mu and nu`_ should be tried to find a stable result. See Ref. [#AuxME]_ for more details.
 
-If your matrix Green's function has the symmetry :math:`G_{ji}=G_{ij}`, set inv_sym_ =True. Then, only the upper part of the matrix will actually be computed, which reduces the required to computational demand by a factor of two.
+If your matrix Green's function has the symmetry :math:`G_{ji}=G_{ij}`, set inv_sym_ =True. Then, only the upper part of the matrix will actually be computed, which reduces the required computational demand by a factor of two.
 
 
 Simple example of usage
@@ -261,6 +276,11 @@ For more advanced examples, see the :ref:`tutorials <OME_TRIQS_tutorials>`.
 .. _`user guide`: https://www.physique.usherbrooke.ca/MaxEnt/index.php/User_Guide
 .. _`maximum entropy`: https://triqs.github.io/maxent/jenkins/basicnotions/mathematics.html
 .. _`different ways`: https://triqs.github.io/maxent/jenkins/basicnotions/maxentflavors.html#maxent-flavors
+.. _BlockGf: https://triqs.github.io/triqs/master/reference/gfs/py/full.html
+.. _GfReFreq: https://triqs.github.io/triqs/master/reference/gfs/py/block/GfReFreq.html
+.. _GfImTime: https://triqs.github.io/triqs/master/reference/gfs/py/block/GfImTime.html
+.. _GfImFreq: https://triqs.github.io/triqs/master/reference/gfs/py/block/GfImFreq.html
+.. _Gf: https://triqs.github.io/triqs/master/reference/gfs/py/block.html
 
 .. [#OME] `D.Bergeron and A.-M.S. Tremblay. Phys. Rev. E, 94:023303, 2016 <https://journals.aps.org/pre/abstract/10.1103/PhysRevE.94.023303>`_
 

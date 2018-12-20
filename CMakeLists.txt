@@ -1,6 +1,8 @@
 # Start configuration
 cmake_minimum_required(VERSION 2.8.12)
 project(omegamaxent_interface CXX)
+set(OMEGAMAXENT_INTERFACE_VERSION 1.0)
+
 if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif()
@@ -14,7 +16,7 @@ endif()
 message( STATUS "-------- BUILD-TYPE: ${CMAKE_BUILD_TYPE} --------")
 
 # Load Dependencies
-find_package(TRIQS 1.5 REQUIRED)
+find_package(TRIQS 2.0 REQUIRED)
 find_package(Cpp2Py 1.5 REQUIRED)
 
 # Default Install directory to TRIQS_ROOT if not given or invalid.
@@ -24,9 +26,6 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT OR (NOT IS_ABSOLUTE ${CMAKE_INSTA
 endif()
 message(STATUS "-------- INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX} --------")
 
-if(NOT OMEGAMAXENT_INTERFACE_VERSION)
-  set(OMEGAMAXENT_INTERFACE_VERSION 0.1)
-endif()
 
 add_subdirectory(omegamaxent)
 add_subdirectory(python)
