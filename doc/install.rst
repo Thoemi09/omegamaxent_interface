@@ -10,10 +10,6 @@ Prerequisite
    (see :ref:`TRIQS installation instruction <triqslibs:installation>`).
    In the following, we will suppose that it is installed in the ``path_to_triqs`` directory.
 
-#. macOs users only: Do not use your system's version of LAPACK. Instead, install LAPACK using `Homebrew <https://brew.sh/>`_::
-
-    $ brew install lapack
-
 Installation steps
 ------------------
 

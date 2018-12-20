@@ -1,8 +1,6 @@
 # Start configuration
 cmake_minimum_required(VERSION 2.8.12)
 project(omegamaxent_interface CXX)
-set(OMEGAMAXENT_INTERFACE_VERSION 1.0)
-
 if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif()
@@ -25,6 +23,10 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT OR (NOT IS_ABSOLUTE ${CMAKE_INSTA
   set(CMAKE_INSTALL_PREFIX ${TRIQS_ROOT} CACHE PATH "default install path" FORCE)
 endif()
 message(STATUS "-------- INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX} --------")
+
+if(NOT OMEGAMAXENT_INTERFACE_VERSION)
+  set(OMEGAMAXENT_INTERFACE_VERSION 1.0)
+endif()
 
 add_subdirectory(omegamaxent)
 add_subdirectory(python)
