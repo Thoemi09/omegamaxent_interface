@@ -7,7 +7,7 @@ from pytriqs.gf import *
 import numpy as np
 import os
 import shutil as su
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 import scipy.integrate as integ
 from pytriqs.archive import HDFArchive as HA
 warnings.simplefilter(action='ignore', category=FutureWarning)
