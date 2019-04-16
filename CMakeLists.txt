@@ -14,7 +14,7 @@ endif()
 message( STATUS "-------- BUILD-TYPE: ${CMAKE_BUILD_TYPE} --------")
 
 # Load Dependencies
-find_package(TRIQS 1.5 REQUIRED)
+find_package(TRIQS 2.1 REQUIRED)
 find_package(Cpp2Py 1.5 REQUIRED)
 
 # Default Install directory to TRIQS_ROOT if not given or invalid.
