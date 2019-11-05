@@ -4,7 +4,7 @@ OmegaMaxEnt_TRIQS is a python [TRIQS] interface to the maximum entropy analytic 
 
  
 [TRIQS]: https://triqs.github.io/triqs/latest/
-[about]: https://triqs.github.io/omegamaxent_interface/master/about.html
+[about]: https://triqs.github.io/omegamaxent_interface/latest/about.html
 [license]: http://www.gnu.org/licenses/gpl.html
-[doc]: https://triqs.github.io/omegamaxent_interface/master/
+[doc]: https://triqs.github.io/omegamaxent_interface/latest/
 [OME]: https://www.physique.usherbrooke.ca/MaxEnt/index.php/Main_Page
