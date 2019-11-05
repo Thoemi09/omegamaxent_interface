@@ -71,7 +71,9 @@ for (int i = 0; i < osxPlatforms.size(); i++) {
         "LIBRARY_PATH=$triqsDir/lib:${env.BREW}/lib",
         "CMAKE_PREFIX_PATH=$triqsDir/lib/cmake/triqs"]) {
         deleteDir()
-        sh "cmake $srcDir -DCMAKE_INSTALL_PREFIX=$installDir -DTRIQS_ROOT=$triqsDir -DLAPACK_ROOT=${env.BREW}/opt/lapack"
+        /* note: this is installing into the parent (triqs) venv (install dir), which is thus shared among apps and so not be completely safe */
+        sh "pip install -r $srcDir/requirements.txt"
+        sh "cmake $srcDir -DCMAKE_INSTALL_PREFIX=$installDir -DTRIQS_ROOT=$triqsDir"
         sh "make -j3"
         try {
           sh "make test CTEST_OUTPUT_ON_FAILURE=1"
@@ -147,7 +149,7 @@ Changes:
 End of build log:
 \${BUILD_LOG,maxLines=60}
     """,
-    to: 'nwentzell@flatironinstitute.org, dsimon@flatironinstitute.org',
+    to: 'nwentzell@flatironinstitute.org, Dominic.Bergeron@usherbrooke.ca',
     recipientProviders: [
       [$class: 'DevelopersRecipientProvider'],
     ],

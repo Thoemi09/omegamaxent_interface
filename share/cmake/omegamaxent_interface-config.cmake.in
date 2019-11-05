@@ -1,0 +1,21 @@
+# This file allows other CMake Projects to find us
+# We provide general project information
+# and reestablish the exported CMake Targets
+
+# Multiple inclusion guard
+if(NOT OMEGAMAXENT_INTERFACE_FOUND)
+set(OMEGAMAXENT_INTERFACE_FOUND True)
+
+# version
+set(OMEGAMAXENT_INTERFACE_VERSION @PROJECT_VERSION@)
+set(OMEGAMAXENT_INTERFACE_GIT_HASH @PROJECT_GIT_HASH@)
+
+# Root of the installation
+set(OMEGAMAXENT_INTERFACE_ROOT  @CMAKE_INSTALL_PREFIX@)
+
+message(STATUS "Found omegamaxent_interface-config.cmake with version @PROJECT_VERSION@, hash = @PROJECT_GIT_HASH@")
+
+# Was the Project built with Documentation?
+set(OMEGAMAXENT_INTERFACE_WITH_DOCUMENTATION @Build_Documentation@)
+
+endif()
