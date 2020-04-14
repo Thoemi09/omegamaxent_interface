@@ -19,8 +19,8 @@ extensions = ['sphinx.ext.autodoc',
 
 source_suffix = '.rst'
 
-project = u'omegamaxent_interface - An Interface to the OmegaMaxent Code'
-author = u'Dominic Bergeron and Nils Wentzell'
+project = 'omegamaxent_interface - An Interface to the OmegaMaxent Code'
+author = 'Dominic Bergeron and Nils Wentzell'
 copyright = u'2018-2019 The Simons Foundation, authors: N. Wentzell, D. Bergeron'
 version = '@PROJECT_VERSION@'
 
