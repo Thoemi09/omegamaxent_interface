@@ -59,7 +59,7 @@ wnmax=W*R_iw_W
 
 nmax=int(ceil(beta*wnmax/(2*pi)))
 
-ind=np.array(range(0,nmax+1))
+ind=np.array(list(range(0,nmax+1)))
 wn=(2*ind+1)*pi/beta
 
 n_iwn=nmax+1
@@ -89,7 +89,7 @@ def spectr_val3(w):
     return v / (W * sqrt(2 * pi))
 
 Nw=int((wr-wl)/dw)+1
-w=dw*np.array(range(0,Nw))+wl
+w=dw*np.array(list(range(0,Nw)))+wl
 
 Aw1=np.zeros(Nw)
 Aw2=np.zeros(Nw)
@@ -164,10 +164,10 @@ class OmegaMaxEnt_test_with_error(ut.TestCase):
             int_diff_A11=dw*sum(np.absolute(A11_me-A11))
             int_diff_A3=dw * sum(np.absolute(A3_me - Aw3))
 
-            print int_diff_A00
-            print int_diff_A01
-            print int_diff_A11
-            print int_diff_A3
+            print(int_diff_A00)
+            print(int_diff_A01)
+            print(int_diff_A11)
+            print(int_diff_A3)
 
             t00 = int_diff_A00 < tol_int_diffA
             t01 = int_diff_A01 < tol_int_diffA

@@ -108,7 +108,7 @@ def compute_GfReFreq(G, **kwa):
 	"""
 
 	if not isinstance(G, Gf) and not isinstance(G, GfImFreq) and not isinstance(G, GfImTime) and not isinstance(G, BlockGf):
-		print "compute_GfReFreq(): input type " + str(G.__class__) + " not accepted. Only objects of types Gf, GfImFreq, GfImTime or BlockGf are accepted."
+		print("compute_GfReFreq(): input type " + str(G.__class__) + " not accepted. Only objects of types Gf, GfImFreq, GfImTime or BlockGf are accepted.")
 		return None
 
 	save_G = True
@@ -116,7 +116,7 @@ def compute_GfReFreq(G, **kwa):
 		if isinstance(kwa['save_G'], bool):
 			save_G = kwa['save_G']
 		else:
-			print "compute_GfReFreq() warning: save_G parameter must be boolean"
+			print("compute_GfReFreq() warning: save_G parameter must be boolean")
 	name = "$G^R$"
 	if 'name' in kwa:
 		name = kwa['name']
@@ -130,7 +130,7 @@ def compute_GfReFreq(G, **kwa):
 			if G.target_shape[0]==1 and G.target_shape[1]==1 and G.indices[0]==G.indices[1]:
 				Gtmp=compute_scalar_GfReFreq(G[ind[0],ind[0]], **kwa)
 				if not isinstance(Gtmp, GfReFreq):
-					print "continuation failed"
+					print("continuation failed")
 					return None
 				n_freq = len(Gtmp.mesh)
 				GR=GfReFreq(indices=G.indices, window=(Gtmp.mesh.omega_min,Gtmp.mesh.omega_max), n_points=n_freq, name=name)
@@ -138,18 +138,18 @@ def compute_GfReFreq(G, **kwa):
 			elif G.indices[0]==G.indices[1]:
 				GR = compute_matrix_GfReFreq(G, **kwa)
 				if not isinstance(GR, GfReFreq):
-					print "continuation failed"
+					print("continuation failed")
 					return None
 			else:
-				print "compute_GfReFreq() only treats Green functions with the same indices along both dimensions"
+				print("compute_GfReFreq() only treats Green functions with the same indices along both dimensions")
 				return None
 		elif not len(G.target_shape):
 			GR = compute_scalar_GfReFreq(G, **kwa)
 			if not isinstance(GR, GfReFreq):
-				print "continuation failed"
+				print("continuation failed")
 				return None
 		else:
-			print "compute_GfReFreq() only treats matrix or scalar Green functions"
+			print("compute_GfReFreq() only treats matrix or scalar Green functions")
 			return None
 	else: #BlockGf
 		kwa.update(dict(name=''))
@@ -158,7 +158,7 @@ def compute_GfReFreq(G, **kwa):
 		for bl,Gbl in G:
 			Gtmp = compute_GfReFreq(Gbl, **kwa)
 			if not isinstance(Gtmp, GfReFreq):
-				print "continuation failed"
+				print("continuation failed")
 				return None
 			list_G.append(Gtmp)
 			if len(output_grid_params) != 3:
@@ -173,7 +173,7 @@ def compute_GfReFreq(G, **kwa):
 		with HA("G_Re_Freq.h5", 'w') as A:
 			A['G'] = GR
 
-	print "continuation done"
+	print("continuation done")
 
 	return GR
 
@@ -184,19 +184,19 @@ def compute_matrix_GfReFreq(G, **kwa):
 	"""
 
 	if not isinstance(G,Gf) and not isinstance(G,GfImFreq) and not isinstance(G,GfImTime):
-		print "compute_matrix_GfReFreq(): input type " + str(G.__class__) + " not accepted. Only objects of types Gf, GfImFreq or GfImTime are accepted."
+		print("compute_matrix_GfReFreq(): input type " + str(G.__class__) + " not accepted. Only objects of types Gf, GfImFreq or GfImTime are accepted.")
 		return None
 
 	if len(G.target_shape)!=2:
-		print "compute_matrix_GfReFreq(): the Green function must be a matrix"
+		print("compute_matrix_GfReFreq(): the Green function must be a matrix")
 		return None
 
 	if G.target_shape[0]<2 or G.target_shape[0]<2 or G.target_shape[0]!=G.target_shape[1]:
-		print "compute_matrix_GfReFreq(): the Green function must be a square matrix of dimension at least 2"
+		print("compute_matrix_GfReFreq(): the Green function must be a square matrix of dimension at least 2")
 		return None
 
 	if G.indices.data[0]!=G.indices.data[1]:
-		print "compute_matrix_GfReFreq(): row and column indices must the same"
+		print("compute_matrix_GfReFreq(): row and column indices must the same")
 		return None
 
 	output_grid_params = []
@@ -204,13 +204,13 @@ def compute_matrix_GfReFreq(G, **kwa):
 		if len(kwa['output_grid_params'])==3:
 			output_grid_params = kwa['output_grid_params']
 		else:
-			print "compute_matrix_GfReFreq() warning: 'output_grid_params' parameter must contain three elements"
+			print("compute_matrix_GfReFreq() warning: 'output_grid_params' parameter must contain three elements")
 	inv_sym = False
 	if 'inv_sym' in kwa:
 		if isinstance(kwa['inv_sym'],bool):
 			inv_sym=kwa['inv_sym']
 		else:
-			print "compute_matrix_GfReFreq() warning: 'inv_sym' parameter must be boolean"
+			print("compute_matrix_GfReFreq() warning: 'inv_sym' parameter must be boolean")
 	mu = 1
 	if 'mu' in kwa:
 		mu=kwa['mu']
@@ -229,34 +229,34 @@ def compute_matrix_GfReFreq(G, **kwa):
 
 	#remove all parameters that do not make sense for matrix-valued Green's function
 	if 'ERR' in kwa:
-		print "compute_matrix_GfReFreq() warning: 'ERR' parameter is applicable only to scalar Green's functions. Parameter discarded."
+		print("compute_matrix_GfReFreq() warning: 'ERR' parameter is applicable only to scalar Green's functions. Parameter discarded.")
 		del kwa['ERR']
 	if 'norm' in kwa:
-		print "compute_matrix_GfReFreq() warning: 'norm' parameter is applicable only to scalar Green's functions. Parameter discarded."
+		print("compute_matrix_GfReFreq() warning: 'norm' parameter is applicable only to scalar Green's functions. Parameter discarded.")
 		del kwa['norm']
 	if 'M1' in kwa:
-		print "compute_matrix_GfReFreq() warning: 'M1' parameter is applicable only to scalar Green's functions. Parameter discarded."
+		print("compute_matrix_GfReFreq() warning: 'M1' parameter is applicable only to scalar Green's functions. Parameter discarded.")
 		del kwa['M1']
 	if 'M2' in kwa:
-		print "compute_matrix_GfReFreq() warning: 'M2' parameter is applicable only to scalar Green's functions. Parameter discarded."
+		print("compute_matrix_GfReFreq() warning: 'M2' parameter is applicable only to scalar Green's functions. Parameter discarded.")
 		del kwa['M2']
 	if 'M3' in kwa:
-		print "compute_matrix_GfReFreq() warning: 'M3' parameter is applicable only to scalar Green's functions. Parameter discarded."
+		print("compute_matrix_GfReFreq() warning: 'M3' parameter is applicable only to scalar Green's functions. Parameter discarded.")
 		del kwa['M3']
 	if 'error_file' in kwa:
-		print "compute_matrix_GfReFreq() warning: 'error_file' parameter is applicable only to scalar Green's functions. Parameter discarded."
+		print("compute_matrix_GfReFreq() warning: 'error_file' parameter is applicable only to scalar Green's functions. Parameter discarded.")
 		del kwa['error_file']
 	if 'cov_re_re' in kwa:
-		print "compute_matrix_GfReFreq() warning: 'cov_re_re' parameter is applicable only to scalar Green's functions. Parameter discarded."
+		print("compute_matrix_GfReFreq() warning: 'cov_re_re' parameter is applicable only to scalar Green's functions. Parameter discarded.")
 		del kwa['cov_re_re']
 	if 'cov_im_im' in kwa:
-		print "compute_matrix_GfReFreq() warning: 'cov_im_im' parameter is applicable only to scalar Green's functions. Parameter discarded."
+		print("compute_matrix_GfReFreq() warning: 'cov_im_im' parameter is applicable only to scalar Green's functions. Parameter discarded.")
 		del kwa['cov_im_im']
 	if 'cov_re_im' in kwa:
-		print "compute_matrix_GfReFreq() warning: 'cov_re_im' parameter is applicable only to scalar Green's functions. Parameter discarded."
+		print("compute_matrix_GfReFreq() warning: 'cov_re_im' parameter is applicable only to scalar Green's functions. Parameter discarded.")
 		del kwa['cov_re_im']
 	if 'cov_tau' in kwa:
-		print "compute_matrix_GfReFreq() warning: 'cov_tau' parameter is applicable only to scalar Green's functions. Parameter discarded."
+		print("compute_matrix_GfReFreq() warning: 'cov_tau' parameter is applicable only to scalar Green's functions. Parameter discarded.")
 		del kwa['cov_tau']
 
 	ind =G.indices[0]
@@ -277,7 +277,7 @@ def compute_matrix_GfReFreq(G, **kwa):
 
 	GM[ind[0], ind[0]] = Gtmp
 
-	print "G[" + ind[0] + "," + ind[0] + "] computed"
+	print("G[" + ind[0] + "," + ind[0] + "] computed")
 	if save_G:
 		with HA("G_Re_Freq_" + ind[0] + "_" + ind[0] + ".h5", 'w') as A:
 			A['G'] = GM[ind[0], ind[0]]
@@ -287,7 +287,7 @@ def compute_matrix_GfReFreq(G, **kwa):
 		if not isinstance(Gtmp, GfReFreq):
 			return None
 		GM[l, l]=Gtmp
-		print "G[" + l + "," + l + "] computed"
+		print("G[" + l + "," + l + "] computed")
 		if save_G:
 			with HA("G_Re_Freq_" + l + "_" + l + ".h5", 'w') as A:
 				A['G'] = GM[l, l]
@@ -309,8 +309,8 @@ def compute_matrix_GfReFreq(G, **kwa):
 				S=GPR-GM[ind[l],ind[l]]-nu*nu*GM[ind[m], ind[m]]
 				GM[ind[l],ind[m]]=(R/mu+1j*S/nu)/2
 				GM[ind[m],ind[l]]=(R/mu-1j*S/nu)/2
-				print "G[" + ind[l] + "," + ind[m] + "] computed"
-				print "G[" + ind[m] + "," + ind[l] + "] computed"
+				print("G[" + ind[l] + "," + ind[m] + "] computed")
+				print("G[" + ind[m] + "," + ind[l] + "] computed")
 				if save_G:
 					with HA("G_Re_Freq_" + ind[l] + "_" + ind[m] + ".h5", 'w') as A:
 						A['G'] = GM[ind[l], ind[m]]
@@ -326,7 +326,7 @@ def compute_matrix_GfReFreq(G, **kwa):
 				GOR = Gtmp
 				GM[ind[l],ind[m]]=(GOR-GM[ind[l],ind[l]]-mu*mu*GM[ind[m],ind[m]])/(2*mu)
 				GM[ind[m],ind[l]]=GM[ind[l], ind[m]]
-				print "G[" + ind[l] + "," + ind[m] + "] computed"
+				print("G[" + ind[l] + "," + ind[m] + "] computed")
 				if save_G:
 					with HA("G_Re_Freq_"+ind[l]+"_"+ind[m]+".h5", 'w') as A:
 						A['G'] = GM[ind[l],ind[m]]
@@ -340,7 +340,7 @@ def compute_scalar_GfReFreq(G, **kwa):
 	"""
 
 	if not isinstance(G,Gf) and not isinstance(G,GfImFreq) and not isinstance(G,GfImTime):
-		print "compute_scalar_GfReFreq(): input type " + str(G.__class__) + " not accepted. Only objects of types Gf, GfImFreq or GfImTime are accepted."
+		print("compute_scalar_GfReFreq(): input type " + str(G.__class__) + " not accepted. Only objects of types Gf, GfImFreq or GfImTime are accepted.")
 		return None
 
 	ERR = None
@@ -378,7 +378,7 @@ def compute_scalar_GfReFreq(G, **kwa):
 			kwa.update(dict(col_Gi=0))
 
 	if len(G.target_shape):
-		print "compute_scalar_GfReFreq(): the Green function must be scalar"
+		print("compute_scalar_GfReFreq(): the Green function must be scalar")
 		return None
 
 	cmd = [OME_cmd]
@@ -404,7 +404,7 @@ def compute_scalar_GfReFreq(G, **kwa):
 
 	if not path.exists(other_params_file):
 		pf = open(other_params_file, "w")
-		for key, val in OmegaMaxEnt_other_params.iteritems():
+		for key, val in OmegaMaxEnt_other_params.items():
 			v=Other_params_default_values[key]
 			if key in kwa:
 				v=kwa[key]
@@ -425,7 +425,7 @@ def compute_scalar_GfReFreq(G, **kwa):
 		data_array=np.concatenate((t_mesh,Gr,Gi),axis=1)
 	else:
 		if abs(Gi).max()/abs(Gr).max()>tol_Gi_tau:
-			print "compute_scalar_GfReFreq(): warning, only the real part of imaginary time data is used"
+			print("compute_scalar_GfReFreq(): warning, only the real part of imaginary time data is used")
 		t_mesh=np.array([[t.value for t in G.mesh]])
 		t_mesh=t_mesh.T
 		Gr = np.array([Gr])
@@ -439,7 +439,7 @@ def compute_scalar_GfReFreq(G, **kwa):
 	if error_provided:
 		dim_ERR=np.array(ERR.shape)
 		if dim_ERR.max()!=n_points:
-			print "compute_scalar_GfReFreq(): provided error array does not have the same size as the data."
+			print("compute_scalar_GfReFreq(): provided error array does not have the same size as the data.")
 			return None
 		ERRtmp=ERR
 		if len(ERR.shape)==2:
@@ -471,7 +471,7 @@ def compute_scalar_GfReFreq(G, **kwa):
 		str_tmp = err_str + error_file_name + '\n'
 		pf.write(str_tmp)
 
-	for key, val in kwa.iteritems():
+	for key, val in kwa.items():
 		if key in OmegaMaxEnt_input_params:
 			if isinstance(val, bool):
 				val_str = "no"

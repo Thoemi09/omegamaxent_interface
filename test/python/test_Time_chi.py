@@ -76,7 +76,7 @@ def spectr_val(w):
     return w*sum_gaussians(w)
 
 Nw=int((wr-wl)/dw)+1
-w=dw*np.array(range(0,Nw))+wl
+w=dw*np.array(list(range(0,Nw)))+wl
 
 Aw=np.zeros(Nw)
 
@@ -118,7 +118,7 @@ for n in range(0,4):
     Mtmp=integ.quad(integ_moment, wmin, wmax, args=args, limit=N_interv_max, points=cw, epsabs=tol_abs, epsrel=tol_rel)
     M[n]=Mtmp[0]
 
-print "M="+str(M)
+print("M="+str(M))
 
 # plt.figure(1)
 # plt.plot(tau,Gt)
@@ -189,7 +189,7 @@ class OmegaMaxEnt_test(ut.TestCase):
 
             int_diffA=dw*sum(np.absolute(Aw_me-Aw))
 
-            print int_diffA
+            print(int_diffA)
 
             self.assertLess(int_diffA, tol_int_diffA)
         else:

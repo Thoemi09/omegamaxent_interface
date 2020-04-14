@@ -65,7 +65,7 @@ wnmax=W*R_iw_W
 nmax=int(ceil(beta*wnmax/(2*pi)))
 n_iwn=nmax+1
 
-n=np.array(range(0,n_iwn))
+n=np.array(list(range(0,n_iwn)))
 
 wn=2*n*pi/beta
 
@@ -95,7 +95,7 @@ def integ_spectr_im(w,wn):
     return integ
 
 Nw=int((wr-wl)/dw)+1
-w=dw*np.array(range(0,Nw))+wl
+w=dw*np.array(list(range(0,Nw)))+wl
 
 Aw=np.zeros(Nw)
 
@@ -116,8 +116,8 @@ for p in range(0,4):
     Mtmp=integ.quad(integ_moment, wmin, wmax, args=args, limit=N_interv_max, points=cw, epsabs=tol_abs, epsrel=tol_rel)
     M[p]=Mtmp[0]
 
-print "M="
-print M
+print("M=")
+print(M)
 
 
 class OmegaMaxEnt_test(ut.TestCase):
@@ -207,7 +207,7 @@ class OmegaMaxEnt_test(ut.TestCase):
 
             int_diffA=dw*sum(np.absolute(Aw_me-Aw))
 
-            print int_diffA
+            print(int_diffA)
 
             self.assertLess(int_diffA, tol_int_diffA)
         else:

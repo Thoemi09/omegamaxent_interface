@@ -21,7 +21,7 @@ source_suffix = '.rst'
 
 project = 'omegamaxent_interface - An Interface to the OmegaMaxent Code'
 author = 'Dominic Bergeron and Nils Wentzell'
-copyright = u'2018-2019 The Simons Foundation, authors: N. Wentzell, D. Bergeron'
+copyright = '2018-2019 The Simons Foundation, authors: N. Wentzell, D. Bergeron'
 version = '@PROJECT_VERSION@'
 
 mathjax_path = "@TRIQS_MATHJAX_PATH@/MathJax.js?config=default"
