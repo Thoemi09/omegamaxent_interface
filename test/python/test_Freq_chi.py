@@ -9,7 +9,7 @@ import os
 import shutil as su
 # from matplotlib import pyplot as plt
 import scipy.integrate as integ
-from pytriqs.archive import HDFArchive as HA
+from h5 import HDFArchive as HA
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 test_dir_name="test_dir_7"

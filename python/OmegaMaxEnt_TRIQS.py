@@ -26,7 +26,7 @@ from math import pi
 import numpy as np
 import subprocess as sp
 from pytriqs.gf import *
-from pytriqs.archive import HDFArchive as HA
+from h5 import HDFArchive as HA
 import os
 from os import path
 from collections import Iterable
