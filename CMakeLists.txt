@@ -132,7 +132,7 @@ endif()
 
 # Python
 if(PythonSupport)
-  add_subdirectory(python/${PROJECT_NAME})
+  add_subdirectory(python)
 endif()
 
 # Docs
