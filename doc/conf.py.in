@@ -3,8 +3,8 @@
 # TRIQS documentation build configuration file
 
 import sys
-sys.path.insert(0, "@TRIQS_SPHINXEXT_PATH@/autorun")
-sys.path.insert(0, "@TRIQS_SPHINXEXT_PATH@/numpydoc")
+sys.path.insert(0, "@CMAKE_CURRENT_SOURCE_DIR@/sphinxext/autorun")
+sys.path.insert(0, "@CMAKE_CURRENT_SOURCE_DIR@/sphinxext/numpydoc")
 
 extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.mathjax',
@@ -14,29 +14,30 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.viewcode',
               'sphinx.ext.autosummary',
               'numpydoc',
-              'plot_directive',
+              'matplotlib.sphinxext.plot_directive',
               'autorun']
 
 source_suffix = '.rst'
 
 project = 'omegamaxent_interface - An Interface to the OmegaMaxent Code'
 author = 'Dominic Bergeron and Nils Wentzell'
-copyright = '2018-2019 The Simons Foundation, authors: N. Wentzell, D. Bergeron'
 version = '@PROJECT_VERSION@'
 
-mathjax_path = "@TRIQS_MATHJAX_PATH@/MathJax.js?config=default"
-templates_path = ['@PROJECT_SOURCE_DIR@/doc/_templates']
+copyright = '2018-2019 The Simons Foundation, authors: N. Wentzell, D. Bergeron'
+
+mathjax_path = "https://raw.githubusercontent.com/mathjax/MathJax/2.7.8/MathJax.js"
+templates_path = ['@CMAKE_CURRENT_SOURCE_DIR@/_templates']
 
 html_theme = 'triqs'
-html_theme_path = ['@TRIQS_THEMES_PATH@']
+html_theme_path = ['@CMAKE_CURRENT_SOURCE_DIR@/themes']
 html_show_sphinx = False
 html_context = {'header_title': 'omegamaxent_interface',
                 'header_subtitle': 'Analytic Continuation using OmegaMaxent',
                 'header_links': [['Install', 'install'],
                                  ['Documentation', 'contents'],
                                  ['Issues', 'issues'],
-                                 ['About omegamaxent_interface', 'about']]}
-html_static_path = ['@PROJECT_SOURCE_DIR@/doc/_static']
+                                 ['About @PROJECT_NAME@', 'about']]}
+html_static_path = ['@CMAKE_CURRENT_SOURCE_DIR@/_static']
 html_sidebars = {'index': ['sideb.html', 'searchbox.html']}
 
 htmlhelp_basename = 'OMEGAMAXENT_INTERFACEdoc'

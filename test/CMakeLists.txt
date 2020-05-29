@@ -1,3 +1,3 @@
-if(${TRIQS_WITH_PYTHON_SUPPORT})
+if(PythonSupport)
  add_subdirectory(python)
 endif()
