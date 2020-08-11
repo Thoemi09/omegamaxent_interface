@@ -73,7 +73,7 @@ class OmegaMaxEnt_test_with_error(ut.TestCase):
         Giw << HilbertTransform(d)(Sigma=Sigma0, mu=0.)
 
         Gtau = GfImTime(indices=[0], beta=beta)
-        Gtau << InverseFourier(Giw)
+        Gtau << Fourier(Giw)
 
         Gtau = Gtau[0, 0]
 
