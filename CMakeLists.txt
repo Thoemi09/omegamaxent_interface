@@ -104,7 +104,7 @@ if(Build_Tests)
 endif()
 
 # Python
-add_subdirectory(python/${PROJECT_NAME})
+add_subdirectory(python)
 
 # Docs
 if(Build_Documentation)
