@@ -4,6 +4,6 @@ foreach(file ${python_sources})
   configure_file(${file} ${file} COPYONLY)
 endforeach()
 
-# Install python modules to proper location
+# Install python files to proper location
 set(PYTHON_LIB_DEST ${TRIQS_PYTHON_LIB_DEST_ROOT})
 install(FILES ${python_sources} DESTINATION ${PYTHON_LIB_DEST})
