@@ -1,5 +1,8 @@
-Version 3.0.0
-=============
+(changelog)=
+
+# Changelog
+
+## Version 3.0.0
 
 omegamaxent_interface version 3.0.0 is a compatibility
 release for TRIQS version 3.0.0 that
@@ -24,8 +27,7 @@ doc
 
 Contributors: Dominic Bergeron, Philipp Dumitrescu, Olivier Parcollet, Dylan Simon, Hugo U. R. Strand, Nils Wentzell
 
-Version 2.2.0
-=============
+## Version 2.2.0
 
 omegamaxent_interface version 2.2.0 is solely
 a compatibility release against TRIQS version 2.2.0.
