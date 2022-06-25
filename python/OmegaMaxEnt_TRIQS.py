@@ -29,7 +29,7 @@ from triqs.gf import *
 from h5 import HDFArchive as HA
 import os
 from os import path
-from collections import Iterable
+from collections.abc import Iterable
 
 tol_Gi_tau = 1e-8
 
