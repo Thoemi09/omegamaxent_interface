@@ -104,22 +104,22 @@ class OmegaMaxEnt_test_with_error(ut.TestCase):
 
     def runTest(self):
 
-        G = GfImFreq(indices=[0,1], beta=beta, n_points=n_iwn)
+        G = GfImFreq(target_shape=[2,2], beta=beta, n_points=n_iwn)
 
         d1 = DOSFromFunction(spectr_val1, wmin, wmax, Npts_dos)
-        G1 = GfImFreq(indices=[0], beta=beta, n_points=n_iwn)
-        Sigma0 = GfImFreq(indices=[0], beta=beta, n_points=n_iwn)
+        G1 = GfImFreq(target_shape=[1,1], beta=beta, n_points=n_iwn)
+        Sigma0 = GfImFreq(target_shape=[1,1], beta=beta, n_points=n_iwn)
         Sigma0.zero()
         G1 << HilbertTransform(d1)(Sigma = Sigma0, mu=0.)
 
         d2 = DOSFromFunction(spectr_val2, wmin, wmax, Npts_dos)
-        G2 = GfImFreq(indices=[0], beta=beta, n_points=n_iwn)
+        G2 = GfImFreq(target_shape=[1,1], beta=beta, n_points=n_iwn)
         G2 << HilbertTransform(d2)(Sigma = Sigma0, mu=0.)
 
         G[0,0]=G1[0,0]
         G[1,1]=G2[0,0]
 
-        G_rot = GfImFreq(indices=[0,1], beta=beta, n_points=n_iwn)
+        G_rot = GfImFreq(target_shape=[2,2], beta=beta, n_points=n_iwn)
         G_rot.from_L_G_R(R, G, Rt)
 
         G_rot.data.real =G_rot.data.real + err * np.reshape(np.random.randn(np.size(G_rot.data.real)),np.shape(G_rot.data.real))

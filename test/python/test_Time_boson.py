@@ -141,12 +141,12 @@ class OmegaMaxEnt_test(ut.TestCase):
     def runTest(self):
 
         # d = DOSFromFunction(spectr_val, wmin, wmax, Npts_dos)
-        # Giw = GfImFreq(indices=[0], beta=beta, n_points=n_iwn, statistic=statistic)
-        # Sigma0 = GfImFreq(indices=[0], beta=beta, n_points=n_iwn, statistic=statistic)
+        # Giw = GfImFreq(target_shape=[1,1], beta=beta, n_points=n_iwn, statistic=statistic)
+        # Sigma0 = GfImFreq(target_shape=[1,1], beta=beta, n_points=n_iwn, statistic=statistic)
         # Sigma0.zero()
         # Giw << HilbertTransform(d)(Sigma=Sigma0, mu=0.)
         #
-        # Gtau = GfImTime(indices=[0], beta=beta, statistic=statistic)
+        # Gtau = GfImTime(target_shape=[1,1], beta=beta, statistic=statistic)
         # Gtau << Fourier(Giw)
 
         # Gtau = Gtau[0, 0]

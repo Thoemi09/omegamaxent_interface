@@ -61,7 +61,7 @@ def compute_GfReFreq(G, **kwa):
 		ERR must have the same shape as the G.data.
 		For a non-diagonal covariance, see the interface user guide or the OmegaMaxEnt user guide.
 
-	output_grid_params:	Optional list of the form [omega_min, omega_step, omega_max].
+	output_grid_params:	Optional list of the form [w_min, w_step, w_max].
 			Defines the real frequency grid of the output Green function. If empty, the output grid is set by
 			OmegaMaxEnt.
 
@@ -126,22 +126,21 @@ def compute_GfReFreq(G, **kwa):
 
 	if not isinstance(G, BlockGf):
 		if len(G.target_shape)==2:
-			ind = G.indices[0]
-			if G.target_shape[0]==1 and G.target_shape[1]==1 and G.indices[0]==G.indices[1]:
-				Gtmp=compute_scalar_GfReFreq(G[ind[0],ind[0]], **kwa)
+			if G.target_shape[0]==1 and G.target_shape[1]==1:
+				Gtmp=compute_scalar_GfReFreq(G[0,0], **kwa)
 				if not isinstance(Gtmp, GfReFreq):
 					print("continuation failed")
 					return None
 				n_freq = len(Gtmp.mesh)
-				GR=GfReFreq(indices=G.indices, window=(Gtmp.mesh.omega_min,Gtmp.mesh.omega_max), n_points=n_freq, name=name)
-				GR[ind[0],ind[0]] = Gtmp
-			elif G.indices[0]==G.indices[1]:
+				GR=GfReFreq(target_shape=[1,1], window=(Gtmp.mesh.w_min,Gtmp.mesh.w_max), n_points=n_freq, name=name)
+				GR[0,0] = Gtmp
+			elif G.target_shape[0]==G.target_shape[1]:
 				GR = compute_matrix_GfReFreq(G, **kwa)
 				if not isinstance(GR, GfReFreq):
 					print("continuation failed")
 					return None
 			else:
-				print("compute_GfReFreq() only treats Green functions with the same indices along both dimensions")
+				print("compute_GfReFreq() only treats Green functions with the same extent of both dimensions")
 				return None
 		elif not len(G.target_shape):
 			GR = compute_scalar_GfReFreq(G, **kwa)
@@ -163,8 +162,8 @@ def compute_GfReFreq(G, **kwa):
 			list_G.append(Gtmp)
 			if len(output_grid_params) != 3:
 				n_freq = len(Gtmp.mesh)
-				step = (Gtmp.mesh.omega_max - Gtmp.mesh.omega_min) / (n_freq - 1)
-				output_grid_params = [Gtmp.mesh.omega_min, step, Gtmp.mesh.omega_max]
+				step = (Gtmp.mesh.w_max - Gtmp.mesh.w_min) / (n_freq - 1)
+				output_grid_params = [Gtmp.mesh.w_min, step, Gtmp.mesh.w_max]
 				kwa.update(dict(output_grid_params=output_grid_params))
 		GR = BlockGf(name_list = list(G.indices), block_list = list_G, name=name)
 
@@ -193,10 +192,6 @@ def compute_matrix_GfReFreq(G, **kwa):
 
 	if G.target_shape[0]<2 or G.target_shape[0]<2 or G.target_shape[0]!=G.target_shape[1]:
 		print("compute_matrix_GfReFreq(): the Green function must be a square matrix of dimension at least 2")
-		return None
-
-	if G.indices.data[0]!=G.indices.data[1]:
-		print("compute_matrix_GfReFreq(): row and column indices must the same")
 		return None
 
 	output_grid_params = []
@@ -259,9 +254,7 @@ def compute_matrix_GfReFreq(G, **kwa):
 		print("compute_matrix_GfReFreq() warning: 'cov_tau' parameter is applicable only to scalar Green's functions. Parameter discarded.")
 		del kwa['cov_tau']
 
-	ind =G.indices[0]
-
-	Gtmp=compute_scalar_GfReFreq(G[ind[0],ind[0]], **kwa)
+	Gtmp=compute_scalar_GfReFreq(G[0,0], **kwa)
 
 	if not isinstance(Gtmp, GfReFreq):
 		return None
@@ -269,67 +262,62 @@ def compute_matrix_GfReFreq(G, **kwa):
 	n_freq = len(Gtmp.mesh)
 
 	if len(output_grid_params)!=3:
-		step=(Gtmp.mesh.omega_max-Gtmp.mesh.omega_min)/(n_freq-1)
-		output_grid_params = [Gtmp.mesh.omega_min, step, Gtmp.mesh.omega_max]
+		step=(Gtmp.mesh.w_max-Gtmp.mesh.w_min)/(n_freq-1)
+		output_grid_params = [Gtmp.mesh.w_min, step, Gtmp.mesh.w_max]
 		kwa.update(dict(output_grid_params=output_grid_params))
 
-	GM=GfReFreq(indices=G.indices, window = (Gtmp.mesh.omega_min, Gtmp.mesh.omega_max), n_points = n_freq, name=name)
+	GM=GfReFreq(target_shape=G.target_shape, window = (Gtmp.mesh.w_min, Gtmp.mesh.w_max), n_points = n_freq, name=name)
 
-	GM[ind[0], ind[0]] = Gtmp
+	N = G.target_shape[0]
 
-	print("G[" + ind[0] + "," + ind[0] + "] computed")
-	if save_G:
-		with HA("G_Re_Freq_" + ind[0] + "_" + ind[0] + ".h5", 'w') as A:
-			A['G'] = GM[ind[0], ind[0]]
-
-	for l in ind[1:]:
+	for l in range(N):
 		Gtmp=compute_scalar_GfReFreq(G[l, l], **kwa)
 		if not isinstance(Gtmp, GfReFreq):
 			return None
 		GM[l, l]=Gtmp
-		print("G[" + l + "," + l + "] computed")
+		print(f"G[{l}, {l}] computed")
 		if save_G:
-			with HA("G_Re_Freq_" + l + "_" + l + ".h5", 'w') as A:
+			with HA(f"G_Re_Freq_{l}_{l}.h5", 'w') as A:
 				A['G'] = GM[l, l]
 
 	if not inv_sym:
-		for l in range(len(ind)):
-			for m in range(l+1,len(ind)):
-				GO=G[ind[l],ind[l]]+mu*G[ind[l],ind[m]]+mu*G[ind[m],ind[l]]+mu*mu*G[ind[m],ind[m]]
+		for l in range(N):
+			for m in range(l+1,N):
+				GO=G[l,l]+mu*G[l,m]+mu*G[m,l]+mu*mu*G[m,m]
 				Gtmp = compute_scalar_GfReFreq(GO, **kwa)
 				if not isinstance(Gtmp, GfReFreq):
 					return None
 				GOR = Gtmp
-				GP=G[ind[l],ind[l]]-1j*nu*G[ind[l],ind[m]]+1j*nu*G[ind[m],ind[l]]+nu*nu*G[ind[m],ind[m]]
+				GP=G[l,l]-1j*nu*G[l,m]+1j*nu*G[m,l]+nu*nu*G[m,m]
 				Gtmp = compute_scalar_GfReFreq(GP, **kwa)
 				if not isinstance(Gtmp, GfReFreq):
 					return None
 				GPR = Gtmp
-				R=GOR-GM[ind[l],ind[l]]-mu*mu*GM[ind[m],ind[m]]
-				S=GPR-GM[ind[l],ind[l]]-nu*nu*GM[ind[m], ind[m]]
-				GM[ind[l],ind[m]]=(R/mu+1j*S/nu)/2
-				GM[ind[m],ind[l]]=(R/mu-1j*S/nu)/2
-				print("G[" + ind[l] + "," + ind[m] + "] computed")
-				print("G[" + ind[m] + "," + ind[l] + "] computed")
+				R=GOR-GM[l,l]-mu*mu*GM[m,m]
+				S=GPR-GM[l,l]-nu*nu*GM[m, m]
+				GM[l,m]=(R/mu+1j*S/nu)/2
+				GM[m,l]=(R/mu-1j*S/nu)/2
+				print(f"G[{l}, {m}] computed")
+				print(f"G[{m}, {l}] computed")
 				if save_G:
-					with HA("G_Re_Freq_" + ind[l] + "_" + ind[m] + ".h5", 'w') as A:
-						A['G'] = GM[ind[l], ind[m]]
-					with HA("G_Re_Freq_" + ind[m] + "_" + ind[l] + ".h5", 'w') as A:
-						A['G'] = GM[ind[m], ind[l]]
+					with HA(f"G_Re_Freq_{l}_{m}.h5", 'w') as A:
+						A['G'] = GM[l, m]
+					with HA(f"G_Re_Freq_{m}_{l}.h5", 'w') as A:
+						A['G'] = GM[m, l]
 	else:
-		for l in range(len(ind)):
-			for m in range(l+1,len(ind)):
-				GO=G[ind[l],ind[l]]+2*mu*G[ind[l],ind[m]]+mu*mu*G[ind[m],ind[m]]
+		for l in range(N):
+			for m in range(l+1,N):
+				GO=G[l,l]+2*mu*G[l,m]+mu*mu*G[m,m]
 				Gtmp = compute_scalar_GfReFreq(GO, **kwa)
 				if not isinstance(Gtmp, GfReFreq):
 					return None
 				GOR = Gtmp
-				GM[ind[l],ind[m]]=(GOR-GM[ind[l],ind[l]]-mu*mu*GM[ind[m],ind[m]])/(2*mu)
-				GM[ind[m],ind[l]]=GM[ind[l], ind[m]]
-				print("G[" + ind[l] + "," + ind[m] + "] computed")
+				GM[l,m]=(GOR-GM[l,l]-mu*mu*GM[m,m])/(2*mu)
+				GM[m,l]=GM[l, m]
+				print(f"G[{l}, {m}] computed")
 				if save_G:
-					with HA("G_Re_Freq_"+ind[l]+"_"+ind[m]+".h5", 'w') as A:
-						A['G'] = GM[ind[l],ind[m]]
+					with HA(f"G_Re_Freq_{l}_{m}.h5", 'w') as A:
+						A['G'] = GM[l,m]
 
 	return GM
 
@@ -416,8 +404,8 @@ def compute_scalar_GfReFreq(G, **kwa):
 	Gi = G.data.imag
 
 	if not im_t:
-		iwn=np.array([[w.value for w in G.mesh]])
-		t_mesh=iwn.imag.T
+		iwn=np.array([[w.value.imag for w in G.mesh]])
+		t_mesh=iwn.T
 		Gr=np.array([Gr])
 		Gr=Gr.transpose()
 		Gi=np.array([Gi])

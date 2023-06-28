@@ -109,8 +109,8 @@ class OmegaMaxEnt_test(ut.TestCase):
     def runTest(self):
 
         d = DOSFromFunction(spectr_val, wmin, wmax, Npts_dos)
-        G = GfImFreq(indices=[0], beta=beta, n_points=n_iwn, statistic=statistic)
-        Sigma0 = GfImFreq(indices=[0], beta=beta, n_points=n_iwn, statistic=statistic)
+        G = GfImFreq(target_shape=[1,1], beta=beta, n_points=n_iwn, statistic=statistic)
+        Sigma0 = GfImFreq(target_shape=[1,1], beta=beta, n_points=n_iwn, statistic=statistic)
         Sigma0.zero()
         G << HilbertTransform(d)(Sigma=Sigma0, mu=0.)
 

@@ -67,12 +67,12 @@ class OmegaMaxEnt_test_with_error(ut.TestCase):
     def runTest(self):
 
         d = DOSFromFunction(spectr_val, wmin, wmax, Npts_dos)
-        Giw = GfImFreq(indices=[0], beta=beta, n_points=n_iwn)
-        Sigma0 = GfImFreq(indices=[0], beta=beta, n_points=n_iwn)
+        Giw = GfImFreq(target_shape=[1,1], beta=beta, n_points=n_iwn)
+        Sigma0 = GfImFreq(target_shape=[1,1], beta=beta, n_points=n_iwn)
         Sigma0.zero()
         Giw << HilbertTransform(d)(Sigma=Sigma0, mu=0.)
 
-        Gtau = GfImTime(indices=[0], beta=beta)
+        Gtau = GfImTime(target_shape=[1,1], beta=beta)
         Gtau << Fourier(Giw)
 
         Gtau = Gtau[0, 0]

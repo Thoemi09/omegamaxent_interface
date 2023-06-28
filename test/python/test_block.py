@@ -110,27 +110,27 @@ A11=R[1,0]*Aw1*Rt[0,1]+R[1,1]*Aw2*Rt[1,1]
 class OmegaMaxEnt_test_with_error(ut.TestCase):
 
     def runTest(self):
-        Gbl1 = GfImFreq(indices=[0, 1], beta=beta, n_points=n_iwn)
+        Gbl1 = GfImFreq(target_shape=[2,2], beta=beta, n_points=n_iwn)
 
         d1 = DOSFromFunction(spectr_val1, wmin, wmax, Npts_dos)
-        G1 = GfImFreq(indices=[0], beta=beta, n_points=n_iwn)
-        Sigma0 = GfImFreq(indices=[0], beta=beta, n_points=n_iwn)
+        G1 = GfImFreq(target_shape=[1,1], beta=beta, n_points=n_iwn)
+        Sigma0 = GfImFreq(target_shape=[1,1], beta=beta, n_points=n_iwn)
         Sigma0.zero()
         G1 << HilbertTransform(d1)(Sigma=Sigma0, mu=0.)
 
         d2 = DOSFromFunction(spectr_val2, wmin, wmax, Npts_dos)
-        G2 = GfImFreq(indices=[0], beta=beta, n_points=n_iwn)
+        G2 = GfImFreq(target_shape=[1,1], beta=beta, n_points=n_iwn)
         G2 << HilbertTransform(d2)(Sigma=Sigma0, mu=0.)
 
         Gbl1[0, 0] = G1[0, 0]
         Gbl1[1, 1] = G2[0, 0]
 
-        Gbl2 = GfImFreq(indices=[0], beta=beta, n_points=n_iwn)
+        Gbl2 = GfImFreq(target_shape=[1,1], beta=beta, n_points=n_iwn)
 
         d3 = DOSFromFunction(spectr_val3, wmin, wmax, Npts_dos)
         Gbl2 << HilbertTransform(d3)(Sigma=Sigma0, mu=0.)
 
-        G_rot = GfImFreq(indices=[0, 1], beta=beta, n_points=n_iwn)
+        G_rot = GfImFreq(target_shape=[2,2], beta=beta, n_points=n_iwn)
         G_rot.from_L_G_R(R, Gbl1, Rt)
 
         G_rot.data.real = G_rot.data.real + err * np.reshape(np.random.randn(np.size(G_rot.data.real)),np.shape(G_rot.data.real))
