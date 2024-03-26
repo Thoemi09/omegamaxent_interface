@@ -2,9 +2,6 @@
 FROM flatironinstitute/triqs:unstable-ubuntu-clang
 ARG APPNAME=omegamaxent_interface
 
-COPY requirements.txt /src/$APPNAME/requirements.txt
-RUN pip3 install -r /src/$APPNAME/requirements.txt
-
 RUN apt-get install -y libgsl-dev || yum install -y gsl-devel
 
 COPY --chown=build . $SRC/$APPNAME
