@@ -173,27 +173,25 @@ class OmegaMaxEnt_test(ut.TestCase):
                                displ_preproc_figs=displ_preproc_figs,
                                compute_Pade=compute_Pade,
                                eta_Pade=eta)
+        self.assertIsNotNone(GR)
 
         os.chdir("..")
         if delete_test_dir:
             su.rmtree(test_dir_name)
 
-        if isinstance(GR, GfReFreq):
-            Aw_me=np.zeros(Nw)
+        Aw_me=np.zeros(Nw)
 
-            for i in range(0, Nw):
-                if abs(w[i]) > eps:
-                    Aw_me[i] = -GR.data[i].imag / (w[i]*pi)
-                else:
-                    Aw_me[i] = -(GR.data[i+1].imag-GR.data[i-1].imag)/((w[i+1]-w[i-1])*pi)
+        for i in range(0, Nw):
+            if abs(w[i]) > eps:
+                Aw_me[i] = -GR.data[i].imag / (w[i]*pi)
+            else:
+                Aw_me[i] = -(GR.data[i+1].imag-GR.data[i-1].imag)/((w[i+1]-w[i-1])*pi)
 
-            int_diffA=dw*sum(np.absolute(Aw_me-Aw))
+        int_diffA=dw*sum(np.absolute(Aw_me-Aw))
 
-            print(int_diffA)
+        print(int_diffA)
 
-            self.assertLess(int_diffA, tol_int_diffA)
-        else:
-            self.assertTrue(False)
+        self.assertLess(int_diffA, tol_int_diffA)
 
 if __name__ == '__main__':
      ut.main()

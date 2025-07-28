@@ -92,20 +92,18 @@ class OmegaMaxEnt_test_with_error(ut.TestCase):
         os.chdir(test_dir_name)
 
         GR=OT.compute_GfReFreq(G, ERR=ERRG, interactive_mode=inter_mode, save_figures_data=save_figs, output_grid_params=[wl, dw, wr], comp_grid_params=[dw_comp, SW], name="$G_{ME}$")
+        self.assertIsNotNone(GR)
 
         os.chdir("..")
         su.rmtree(test_dir_name)
 
-        if isinstance(GR, GfReFreq):
-            Aw_me = -GR.data.imag / pi
+        Aw_me = -GR.data.imag / pi
 
-            int_diffA = dw * sum(np.absolute(Aw_me - Aw))
+        int_diffA = dw * sum(np.absolute(Aw_me - Aw))
 
-            print(int_diffA)
+        print(int_diffA)
 
-            self.assertLess(int_diffA, tol_int_diffA)
-        else:
-            self.assertTrue(False)
+        self.assertLess(int_diffA, tol_int_diffA)
 
 if __name__ == '__main__':
     ut.main()
