@@ -130,30 +130,28 @@ class OmegaMaxEnt_test_with_error(ut.TestCase):
         os.chdir(test_dir_name)
 
         GR=OT.compute_GfReFreq(G_rot, interactive_mode=inter_mode, save_figures_data=save_figs, inv_sym=inv_sym, output_grid_params=[wl, dw, wr], comp_grid_params=[dw_comp, SW], name="$G_{ME}$")
+        self.assertIsNotNone(GR)
 
         os.chdir("..")
         su.rmtree(test_dir_name)
 
-        if isinstance(GR, GfReFreq):
-            A00_me=-GR[0,0].data.imag/pi
-            A01_me=-GR[0,1].data.imag/pi
-            A11_me=-GR[1,1].data.imag/pi
+        A00_me=-GR[0,0].data.imag/pi
+        A01_me=-GR[0,1].data.imag/pi
+        A11_me=-GR[1,1].data.imag/pi
 
-            int_diff_A00=dw*sum(np.absolute(A00_me-A00))
-            int_diff_A01=dw*sum(np.absolute(A01_me-A01))
-            int_diff_A11=dw*sum(np.absolute(A11_me-A11))
+        int_diff_A00=dw*sum(np.absolute(A00_me-A00))
+        int_diff_A01=dw*sum(np.absolute(A01_me-A01))
+        int_diff_A11=dw*sum(np.absolute(A11_me-A11))
 
-            print(int_diff_A00)
-            print(int_diff_A01)
-            print(int_diff_A11)
+        print(int_diff_A00)
+        print(int_diff_A01)
+        print(int_diff_A11)
 
-            t00 = int_diff_A00 < tol_int_diffA
-            t01 = int_diff_A01 < tol_int_diffA
-            t11 = int_diff_A11 < tol_int_diffA
+        t00 = int_diff_A00 < tol_int_diffA
+        t01 = int_diff_A01 < tol_int_diffA
+        t11 = int_diff_A11 < tol_int_diffA
 
-            self.assertTrue(t00 and t01 and t11)
-        else:
-            self.assertTrue(False)
+        self.assertTrue(t00 and t01 and t11)
 
 
 if __name__ == '__main__':
