@@ -129,8 +129,13 @@ include(GNUInstallDirs)
 add_subdirectory(deps)
 
 # ############
-# Build the omegamxent code
-add_subdirectory(omegamaxent)
+# Fetch the omegamaxent code
+include(CMake/CPM.cmake)
+CPMAddPackage(
+  NAME omegamaxent
+  GITHUB_REPOSITORY Thoemi09/OmegaMaxEnt
+  GIT_TAG omegamaxent_interface
+)
 
 # Tests
 if(Build_Tests)
