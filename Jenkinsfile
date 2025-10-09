@@ -91,6 +91,7 @@ for (int i = 0; i < osxPlatforms.size(); i++) {
           "PYTHONPATH=$installDir/lib/python3.13/site-packages",
           "CMAKE_PREFIX_PATH=$venv/lib/cmake/triqs",
           "VIRTUAL_ENV=$venv",
+          "LAPACK_ROOT=${env.BREW}/opt/openblas",
           "OMP_NUM_THREADS=2"]) {
         deleteDir()
         /* note: this is installing into the parent (triqs) venv (install dir), which is thus shared among apps and so not be completely safe */
