@@ -46,7 +46,7 @@ result_file_name="OmegaMaxEnt_final_result/real_frequency_Green_function.dat"
 
 
 def compute_GfReFreq(G, **kwa):
-	"""
+	r"""
 	Compute a GfReFreq object or a BlockGf containing GfReFreq objects from a Matsubara input Green function using the
 	program OmegaMaxEnt. For more details, see the OmegaMaxEnt-TRIQS interface documentation and the OmegaMaxEnt
 	user guide at https://www.physique.usherbrooke.ca/MaxEnt/index.php/User_Guide.
