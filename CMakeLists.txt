@@ -20,7 +20,7 @@
 #
 # ##############################################################################
 
-cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
 cmake_policy(VERSION ${CMAKE_VERSION})
 
 # ############
@@ -29,7 +29,7 @@ project(omegamaxent_interface VERSION 4.0.0 LANGUAGES CXX)
 get_directory_property(IS_SUBPROJECT PARENT_DIRECTORY)
 
 # ############
-# Load TRIQS and CPP2PY
+# Load TRIQS
 find_package(TRIQS 4.0 REQUIRED)
 
 # Get the git hash & print status
@@ -69,7 +69,7 @@ endif()
 
 # Python Support
 if(NOT TRIQS_WITH_PYTHON_SUPPORT)
-  message(FATAL_ERROR "TRIQS was installed without Python support. Cannot build the Python Interface. Disable the build with -DPythonSupport=OFF")
+  message(FATAL_ERROR "TRIQS was installed without Python support. TRIQS Python support is required.")
 endif()
 
 # Documentation
@@ -79,45 +79,18 @@ option(Build_Documentation "Build documentation" OFF)
 option(Build_Tests "Build tests" ON)
 if(Build_Tests)
   enable_testing()
+  # When built as a dependency of a project configured with the LLVM sanitizers
+  # (-DASAN/-DUBSAN), our Python tests load that project's instrumented TRIQS
+  # libraries and need the sanitizer runtime preloaded. Locate it here so that
+  # SANITIZER_RT_PRELOAD is populated before the test commands are registered.
+  # No-op in a standalone build, where ASAN/UBSAN are unset.
+  if(ASAN)
+    find_package(sanitizer REQUIRED COMPONENTS asan)
+  endif()
+  if(UBSAN)
+    find_package(sanitizer REQUIRED COMPONENTS ubsan)
+  endif()
 endif()
-
-# ############
-# Global Compilation Settings
-
-# Build static libraries by default
-option(BUILD_SHARED_LIBS "Enable compilation of shared libraries" OFF)
-
-# Export the list of compile-commands into compile_commands.json
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-# Disable compiler extensions
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-# Provide additional debugging information for Debug builds
-add_compile_options($<$<CONFIG:Debug>:-ggdb3>)
-
-# Create an Interface target for compiler warnings
-add_library(${PROJECT_NAME}_warnings INTERFACE)
-target_compile_options(${PROJECT_NAME}_warnings
-  INTERFACE
-    -Wall
-    -Wextra
-    -Wfloat-conversion
-    -Wpedantic
-    -Wno-sign-compare
-    $<$<CXX_COMPILER_ID:GNU>:-Wno-comma-subscript>
-    $<$<CXX_COMPILER_ID:GNU>:-Wno-psabi> # Disable notes about ABI changes
-    $<$<CXX_COMPILER_ID:GNU>:-Wshadow=local>
-    $<$<CXX_COMPILER_ID:GNU>:-Wno-attributes>
-    $<$<CXX_COMPILER_ID:GNU>:-Wno-deprecated-declarations>
-    $<$<CXX_COMPILER_ID:AppleClang,Clang,IntelLLVM>:-Wno-deprecated-comma-subscript>
-    $<$<CXX_COMPILER_ID:AppleClang,Clang,IntelLLVM>:-Wno-unknown-warning-option>
-    $<$<CXX_COMPILER_ID:AppleClang,Clang,IntelLLVM>:-Wshadow>
-    $<$<CXX_COMPILER_ID:AppleClang,Clang,IntelLLVM>:-Wno-gcc-compat>
-    $<$<CXX_COMPILER_ID:AppleClang,Clang,IntelLLVM>:-Wno-c++20-extensions>
-    $<$<CXX_COMPILER_ID:AppleClang,Clang,IntelLLVM>:-Wno-c++20-compat>
-    $<$<CXX_COMPILER_ID:IntelLLVM>:-Wno-tautological-constant-compare>
-)
 
 # Provide GNU Installation directories
 include(GNUInstallDirs)
@@ -153,7 +126,7 @@ endif()
 # Additional configuration files
 add_subdirectory(share)
 
-# add packaging for automatic Versioning
+# add packaging for automatic versioning
 add_subdirectory(packaging)
 
 # #############
