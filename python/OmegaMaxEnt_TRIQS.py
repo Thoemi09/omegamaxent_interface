@@ -25,7 +25,7 @@ from OmegaMaxEnt_parameters import *
 from math import pi
 import numpy as np
 import subprocess as sp
-from triqs.gf import *
+from triqs.gfs import *
 from h5 import HDFArchive as HA
 import os
 from os import path

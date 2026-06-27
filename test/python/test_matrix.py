@@ -3,7 +3,7 @@ import OmegaMaxEnt_TRIQS as OT
 from math import cos, sin, ceil, exp, sqrt, pi
 from triqs.dos import HilbertTransform, DOSFromFunction
 import warnings
-from triqs.gf import *
+from triqs.gfs import *
 import numpy as np
 import os
 import shutil as su
