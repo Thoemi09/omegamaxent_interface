@@ -29,7 +29,7 @@ project(omegamaxent_interface VERSION 4.0.0 LANGUAGES CXX)
 get_directory_property(IS_SUBPROJECT PARENT_DIRECTORY)
 
 # version displayed in the documentation
-set(BRANCH_FOR_DOC ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.x)
+set(BRANCH_FOR_DOC unstable)
 
 # ############
 # Load TRIQS
@@ -95,6 +95,9 @@ if(Build_Tests)
   endif()
 endif()
 
+# Build a Debian package
+option(BUILD_DEBIAN_PACKAGE "Build a deb package" OFF)
+
 # Provide GNU Installation directories
 include(GNUInstallDirs)
 
@@ -135,7 +138,6 @@ add_subdirectory(packaging)
 # #############
 # Debian Package
 
-option(BUILD_DEBIAN_PACKAGE "Build a deb package" OFF)
 if(BUILD_DEBIAN_PACKAGE AND NOT IS_SUBPROJECT)
   if(NOT CMAKE_INSTALL_PREFIX STREQUAL "/usr")
     message(FATAL_ERROR "CMAKE_INSTALL_PREFIX must be /usr for packaging")
